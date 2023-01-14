@@ -25,12 +25,10 @@ Componente python que simplifica o processo de criação de um modelo `Doc2Vec` 
 
 ![exemplo recorte espaço vetorial e assuntos](./exemplos/img_agrupamento_assuntos.png?raw=true "Exemplo recorte de espaço vetorial e assuntos")
 
-> :bulb: Uma dica para conjuntos de documentos com pouca atualização, é fazer o cálculo da similaridade dos documentos e armazenar em um banco transacional qualquer para busca simples pelos metadados da similaridade. Por exemplo uma tabela com as colunas `seq_doc_1`, `seq_doc_2` e `sim` para todos os documentos que possuam similaridade acima de nn% a ser avaliado de acordo com o projeto. Depois basta fazer uma consulta simples para indicar documentos similares ao que o usuário está acessando, por exemplo.
+> :bulb: <sub>Uma dica para conjuntos de documentos com pouca atualização, é fazer o cálculo da similaridade dos documentos e armazenar em um banco transacional qualquer para busca simples pelos metadados da similaridade. Por exemplo uma tabela com as colunas `seq_doc_1`, `seq_doc_2` e `sim` para todos os documentos que possuam similaridade acima de nn% a ser avaliado de acordo com o projeto. Depois basta fazer uma consulta simples para indicar documentos similares ao que o usuário está acessando, por exemplo.</sub>
 
 - O core desse componente é o uso de um Tokenizador Inteligente que usa as configurações dos arquivos contidos na pasta do modelo para tokenizar os arquivos de treinamento e os arquivos novos para comparação no futuro (toda a configuração do tokenizador é opcional).
 - Esse é um repositório de estudos. Analise, ajuste, corrija e use os códigos como desejar.
-> :thumbsup: <sub> Agradecimentos especiais ao Miguel Angelo Neto do Paraná e ao me Amilar Martins por vários feedbacks contribuindo para a correção de bugs e a melhoria da documentação.</sub><br>
-
 > :warning: <sub>A quantidade de documentos treinados e de épocas de treinamento são valores que dependem do objetivo e do tipo de texto de cada projeto.</sub><br>
 > :warning: <sub>É importante lembrar que ao atualizar o modelo com mais épocas de treinamento ou mais documentos, todos os vetores gerados anteriormente e guardados para comparação no seu sistema devem ser atualizados. Uma dica é criar uma tabela nova no SingleStore ou uma coluna nova no ElasticSearch e, após a geração dos novos vetores, fazer a atualização em bloco substituindo os vetores antigos pelos novos.</sub>
 
