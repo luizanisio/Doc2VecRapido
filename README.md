@@ -52,7 +52,7 @@ Componente python que simplifica o processo de criação de um modelo `Doc2Vec` 
   - vector_size = número de dimensões do vetor que será treinado (padrão 300)
 
  - treinamento do modelo usando a estrutura de tokenização criada 
-   - `python util_doc2vec_rapido.py -pasta ./meu_modelo -treinar` -textos ./textos
+   - `python util_doc2vec_rapido.py -pasta ./meu_modelo -treinar -textos ./textos`
    - o modelo será gravado a cada 50 iterações para continuação do treino se ocorrer alguma interrupção
 > 💡 <sub>Nota: para interromper o treino sem correr o risco corromper o modelo durante a gravação, basta criar um arquivo `meu_modelo/parar.txt` na pasta do modelo que o treinamento será interrompido ao final da iteração em andamento.</sub>
 
