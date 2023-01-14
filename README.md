@@ -44,12 +44,12 @@ Componente python que simplifica o processo de criação de um modelo `Doc2Vec` 
 
 ## Você pode configurar alguns parâmetros antes do treinamento para o `Doc2VecRapido`:
  - criar a pasta do modelo (por exemplo "meu_modelo") e criar o arquivo `config.json` com os seguintes parâmetros.
-  - `config.json = {"vector_size": 300, "strip_numeric":true, "stemmer":false, "min_count": 5 , "token_br": true}`
-  - strip_numeric = remove números (padrão true)
-  - stemmer = utiliza o stemmer dos tokens (padrão false)
-  - min_count = ocorrência mínima do token no corpus para ser treinado (padrão 5)
-  - token_br = cria o token #br para treinar simulando a quebra de parágrafos (padrão true)
-  - vector_size = número de dimensões do vetor que será treinado (padrão 300)
+   - `config.json = {"vector_size": 300, "strip_numeric":true, "stemmer":false, "min_count": 5 , "token_br": true}`
+   - strip_numeric = remove números (padrão true)
+   - stemmer = utiliza o stemmer dos tokens (padrão false)
+   - min_count = ocorrência mínima do token no corpus para ser treinado (padrão 5)
+   - token_br = cria o token #br para treinar simulando a quebra de parágrafos (padrão true)
+   - vector_size = número de dimensões do vetor que será treinado (padrão 300)
 
  - treinamento do modelo usando a estrutura de tokenização criada 
    - `python util_doc2vec_rapido.py -pasta ./meu_modelo -treinar -textos ./textos`
@@ -65,6 +65,7 @@ Componente python que simplifica o processo de criação de um modelo `Doc2Vec` 
    sim = 100*dv.similaridade(texto_1, texto_2)
    print(f'Similaridade texto 1 e 2: {sim:.2f}')       
 ```    
+
 Resultado (a similaridade vai depender dos documentos usados no treinamento):
 ```
   Similaridade texto 1 e 2: 83.25%
