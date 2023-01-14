@@ -50,6 +50,7 @@ Componente python que simplifica o processo de criação de um modelo `Doc2Vec` 
    - **min_count** = ocorrência mínima do token no corpus para ser treinado (padrão 5)
    - **token_br** = cria o token #br para treinar simulando a quebra de parágrafos (padrão true)
    - **vector_size** = número de dimensões do vetor que será treinado (padrão 300)
+   - **window** = a distância máxima entre a palavra atual e a prevista em uma frase (padrão 10)
 
  - treinamento do modelo usando a estrutura de tokenização criada 
    - `python util_doc2vec_rapido.py -pasta ./meu_modelo -treinar -textos ./textos`
