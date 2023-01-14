@@ -80,7 +80,7 @@ Resultado (a similaridade vai depender dos documentos usados no treinamento):
    from util_doc2vec_rapido import Doc2VecRapido
    dv = Doc2VecRapido(pasta_modelo = 'minha_pasta')
    texto_1 = 'esse é um texto de teste para comparação'
-   vetor = dv.inferir(texto)
+   vetor = dv.vetor(texto)
    print(f'Vetor do texto 1: {vetor}')       
 ```    
 - resultado (os 300 números do vetor criado para o documento):
