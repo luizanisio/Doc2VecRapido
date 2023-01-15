@@ -105,6 +105,7 @@ class Doc2VecRapido():
         self.arquivo_modelo = os.path.join(pasta_modelo,'doc2vecrapido.d2v')
         self.arquivo_vocab = os.path.join(pasta_modelo,'vocab_treinado.txt')
         self.arquivo_vocab_sim = os.path.join(pasta_modelo,'vocab_similares.txt')
+        self.arquivo_stopwords = os.path.join(pasta_modelo,'stopwords.txt')
         # carrega as configurações se existirem
         self.config = Config(arquivo=self.arquivo_config,
                              min_count = min_count, 
@@ -115,6 +116,11 @@ class Doc2VecRapido():
         self.documentos_carregados = 0
         self.tagged_docs = None 
         self.epochs = None
+        self.stop_words_usuario = self.STOP_WORDS_BR
+        # arquivo com stopwords
+        if os.path.isfile(self.arquivo_stopwords):
+           self.stop_words_usuario = set(preprocess_string(self.carregar_arquivo(self.arquivo_stopwords), self.CUSTOM_FILTERS_NUM)) 
+        
         # sem documentos, tenta carregar o modelo
         if os.path.isfile(self.arquivo_modelo):
             self.printlog(f'Carregando modelo {self.pasta_modelo}')
@@ -276,9 +282,9 @@ class Doc2VecRapido():
         if self.config.token_br:
            texto = texto.replace('\n',' qbrpargf ')
         if self.config.strip_numeric:
-            tks = remove_stopwords(simple_preprocess(texto), stopwords = self.STOP_WORDS_BR)
+            tks = remove_stopwords(preprocess_string(texto, self.CUSTOM_FILTERS), stopwords = self.stop_words_usuario)
         else:
-            tks = remove_stopwords(preprocess_string(texto, self.CUSTOM_FILTERS), stopwords= self.STOP_WORDS_BR)
+            tks = remove_stopwords(preprocess_string(texto, self.CUSTOM_FILTERS_NUM), stopwords= self.stop_words_usuario)
         # cria um token para a quebra de linha
         if self.config.token_br:
            tks = [_ if _ != 'qbrpargf' else '#br' for _ in tks]
