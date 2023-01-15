@@ -1,8 +1,6 @@
 # Doc2VecRapido
 
-==EM PREPARAÇÃO==
-
-Componente python que simplifica o processo de criação de um modelo `Doc2Vec` [`Gensim 4.0.1`](https://radimrehurek.com/gensim/models/doc2vec.html) sem tatnos parâmetros de configuração como o [Doc2VecFacil](/Doc2VecFacil). Dicas de agrupamento de documentos similares, uso de `ElasticSearch` e `SingleStore`.
+Classe em python que simplifica o processo de criação de um modelo `Doc2Vec` [`Gensim 4.0.1`](https://radimrehurek.com/gensim/models/doc2vec.html) sem tatnos parâmetros de configuração como o [Doc2VecFacil](/Doc2VecFacil). Dicas de agrupamento de documentos similares, uso de `ElasticSearch` e `SingleStore`.
 - se você não sabe o que é um modelo de similaridade, em resumo é um algoritmo não supervisionado para criar um modelo que transforma frases ou documentos em vetores matemáticos que podem ser comparados retornando um valor equivalente à similaridade semântica de documentos do mesmo contexto/domínio dos documentos usados no treinamento do modelo (doc2vec). Nesse cenário a máquina 'aprende' o vocabulário treinado e o contexto em que as palavras aparecem (word2vec), permitindo identificar a similaridade entre os termos, as frases e os documentos. O doc2vec amplia o treinamento do word2vec para frases ou documentos.
 - alguns links para saber mais:
   - [`Paragraph Vector 2014`](https://cs.stanford.edu/~quocle/paragraph_vector.pdf) - a origem do Doc2Vec
@@ -36,7 +34,7 @@ Componente python que simplifica o processo de criação de um modelo `Doc2Vec` 
 1) reservar um volume de documentos que represente a semântica que será treinada. Então o primeiro passo é extrair e separar em uma pasta os documentos que serão usados no treinamento. É interessante que sejam documentos “texto puro” (não ocerizados), mas não impede que sejam usados documentos ocerizados na falta de documentos “texto puro”. Com textos com muito ruído, como em textos ocerizados, o vocabulário "aprendido" pode não ser tão eficiente.
 2) preparar o ambiente python caso ainda não tenha feito isso: [`anaconda`](https://www.anaconda.com/) + [`requirements`](./src/requirements.txt)
 3) baixar os arquivos do [`projeto`](./src/) 
-4) baixar um [`modelo`](./exemplos/) ou criar a sua estrutura de pastas
+4) preparar um conjunto de textos como no exemplo [`textos_legislacoes.zip`](./exemplos/) 
 5) rodar o treinamento e explorar os recursos que o uso do espaço vetorial permite
 > :bulb: <sub> Nota: Esse é o [tutorial oficial do gensim](https://radimrehurek.com/gensim/auto_examples/tutorials/run_doc2vec_lee.html#introducing-paragraph-vector), a ideia do componente é simplificar a geração e uso do modelo treinado, mas não há nada muito especial se comparado aos códigos da documentação. </sub>
 
@@ -60,7 +58,6 @@ Componente python que simplifica o processo de criação de um modelo `Doc2Vec` 
    - ao final do treinamento serão criados dois arquivos para consulta: 
      - `vocab_treinado.txt` com os termos treinados 
      - `vocab_similares.txt` com alguns termos e os termos mais similares a eles.
-> 💡 <sub>Nota: para interromper o treino sem correr o risco corromper o modelo durante a gravação, basta criar um arquivo `meu_modelo/parar.txt` na pasta do modelo que o treinamento será interrompido ao final da iteração em andamento.</sub>
 
 - testando o modelo (vai carregar o modelo e comparar alguns textos internos)
   - `python util_doc2vec_rapido.py -pasta ./meu_modelo`
