@@ -36,7 +36,7 @@ Classe em python que simplifica o processo de criação de um modelo `Doc2Vec` [
 3) baixar os arquivos do [`projeto`](./src/) 
 4) preparar um conjunto de textos como no exemplo [`textos_legislacoes.zip`](./exemplos/) 
 5) rodar o treinamento e explorar os recursos que o uso do espaço vetorial permite
-> :bulb: <sub> Nota: Esse é o [tutorial oficial do gensim](https://radimrehurek.com/gensim/auto_examples/tutorials/run_doc2vec_lee.html#introducing-paragraph-vector), a ideia do componente é simplificar a geração e uso do modelo treinado, mas não há nada muito especial se comparado aos códigos da documentação. </sub>
+> :bulb: <sub> Nota: Esse é o link do [tutorial oficial do gensim](https://radimrehurek.com/gensim/auto_examples/tutorials/run_doc2vec_lee.html#introducing-paragraph-vector), a ideia do componente é simplificar a geração e uso do modelo treinado, mas não há nada muito especial se comparado aos códigos da documentação. </sub>
 
 <hr>
 
@@ -50,8 +50,9 @@ Classe em python que simplifica o processo de criação de um modelo `Doc2Vec` [
    - **vector_size** = número de dimensões do vetor que será treinado (padrão 300)
    - **window** = a distância máxima entre a palavra atual e a prevista em uma frase (padrão 10)
    - **max_total_epocas** = número máximo de épocas para treinar (facilita para o caso de desejar completar até um valor treinando parcialmente - padrão 0 = sem limite)
+> :bulb: <sub> Nota: Você pode criar o arquivo `stopwords.txt' e colocar uma lista de palavras que serão exlcuídas dos textos durante o treinamento. Essas palavras não serão "vistas" pelo modelo na leitura dos textos.</sub>
 
- - treinamento do modelo usando a estrutura de tokenização criada 
+### Treinamento do modelo usando a estrutura de tokenização criada 
    - `python util_doc2vec_rapido.py -pasta ./meu_modelo -textos ./textos -epocas 1000`
    - o modelo será gravado a cada 50 iterações para continuação do treino se ocorrer alguma interrupção
    - durante o treinamento o arquivo de configuração será atualizado com a chave `log_treino_epocas` (total de épocas treinadas até o momento) e `log_treino_vocab` (número de termos usados no vocabulário do modelo).
@@ -59,7 +60,7 @@ Classe em python que simplifica o processo de criação de um modelo `Doc2Vec` [
      - `vocab_treinado.txt` com os termos treinados 
      - `vocab_similares.txt` com alguns termos e os termos mais similares a eles.
 
-- testando o modelo (vai carregar o modelo e comparar alguns textos internos)
+### Testando o modelo (vai carregar o modelo e comparar alguns textos internos)
   - `python util_doc2vec_rapido.py -pasta ./meu_modelo`
 Resultado: 
 ```
@@ -75,7 +76,7 @@ Similaridade entre os textos 1 e 2: 73.45%
 Similaridade entre os textos 1 e 3: 96.22%
 ```
 
-- carregando o modelo para comparação
+### Carregando o modelo para comparação
  ```python 
    from util_doc2vec_rapido import Doc2VecRapido
    dv = Doc2VecRapido(pasta_modelo = 'minha_pasta')
@@ -86,7 +87,7 @@ Similaridade entre os textos 1 e 3: 96.22%
 ```    
 - Resultado: `Similaridade texto 1 e 2: 83.25%`
 
-- mostrando o vetor do texto
+### Mostrando o vetor do texto
  ```python 
    from util_doc2vec_rapido import Doc2VecRapido
    dv = Doc2VecRapido(pasta_modelo = 'minha_pasta')
