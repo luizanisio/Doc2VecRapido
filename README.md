@@ -62,6 +62,7 @@ Classe em python que simplifica o processo de criação de um modelo `Doc2Vec` [
 
 ### Testando o modelo (vai carregar o modelo e comparar alguns textos internos)
   - `python util_doc2vec_rapido.py -pasta ./meu_modelo`
+
 Resultado: 
 ```
  >>>> TESTE DO MODELO <<<<
@@ -85,6 +86,7 @@ Similaridade entre os textos 1 e 3: 96.22%
    sim = 100*dv.similaridade(texto_1, texto_2)
    print(f'Similaridade texto 1 e 2: {sim:.2f}')       
 ```    
+
 - Resultado: `Similaridade texto 1 e 2: 83.25%`
 
 ### Mostrando o vetor do texto
@@ -95,7 +97,10 @@ Similaridade entre os textos 1 e 3: 96.22%
    vetor = dv.vetor(texto)
    print(f'Vetor do texto 1: {vetor}')       
 ```    
-- resultado (300 números do vetor): `[0.012920759618282318, -0.04087100550532341, .. 0.00844051968306303, -0.029573174193501472]`
+- Resultado (300 números do vetor): 
+```
+[0.012920759618282318, -0.04087100550532341, .. 0.00844051968306303, -0.029573174193501472]
+```
 
 
 ## Dicas de uso: <a name="dicas">
