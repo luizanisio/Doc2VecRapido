@@ -69,14 +69,17 @@ Resultado:
 ```
  >>>> TESTE DO MODELO <<<<
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-Texto 1:  esse é um texto de teste para comparação - o teste depende de existirem os termos no vocab treinado
-Texto 2:  esse outro texto de teste para uma nova comparação - lembrando que o teste depende de existirem os termos no vocab treinado
-Texto 3:  esse é um texto de teste para comparação \n o teste depende de existirem os termos no vocab treinado
+- Texto 01:   esse é um texto de teste para comparação - o teste depende de existirem os termos no vocab treinado
+  > tokens:  esse|um|texto|teste|comparação|teste|depende|existirem|os|termos|vocab|treinado
+- Texto 02:   esse outro texto de teste para uma nova comparação - lembrando que o teste depende de existirem os termos no vocab treinado
+  > tokens:  esse|outro|texto|teste|uma|nova|comparação|lembrando|que|teste|depende|existirem|os|termos|vocab|treinado
+- Texto 03:   esse é um texto de teste para comparação \n o teste depende de existirem os termos no vocab treinado
+  > tokens:  esse|um|texto|teste|comparação|#br|teste|depende|existirem|os|termos|vocab|treinado
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-Similaridade entre o texto 1 e ele mesmo: 96.52%
-Similaridade entre o texto 1 e ele com oov: 96.11%
-Similaridade entre os textos 1 e 2: 73.45%
-Similaridade entre os textos 1 e 3: 96.22%
+Similaridade entre o texto 01 e ele mesmo: 98.73%
+Similaridade entre o texto 01 e ele com oov: 98.81%
+Similaridade entre os textos 01 e 02: 86.25%
+Similaridade entre os textos 01 e 03: 98.88%
 ```
 
 ### Carregando o modelo para comparação
@@ -85,7 +88,7 @@ Similaridade entre os textos 1 e 3: 96.22%
    dv = Doc2VecRapido(pasta_modelo = 'minha_pasta')
    texto_1 = 'esse é um texto de teste para comparação'
    texto_2 = 'esse outro texto de teste para uma nova comparação'
-   sim = 100*dv.similaridade(texto_1, texto_2)
+   sim = 100 * dv.similaridade(texto_1, texto_2)
    print(f'Similaridade texto 1 e 2: {sim:.2f}')       
 ```    
 
