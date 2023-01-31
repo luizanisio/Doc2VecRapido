@@ -52,7 +52,8 @@ Classe em python que simplifica o processo de criação de um modelo `Doc2Vec` [
    - **skip_gram** = True/False se o treinamento será feito com skip-gram
    - **skip_gram_window** = a distância máxima entre a palavra atual e a prevista usando skip-gram (padrão 10)
    - **max_total_epocas** = número máximo de épocas para treinar (facilita para o caso de desejar completar até um valor treinando parcialmente - padrão 0 = sem limite)
-> :bulb: <sub> Nota: Você pode criar o arquivo `stopwords.txt' e colocar uma lista de palavras que serão exlcuídas dos textos durante o treinamento. Essas palavras não serão "vistas" pelo modelo na leitura dos textos.</sub>
+> :bulb: <sub> Nota: Você pode criar o arquivo `stopwords.txt` e colocar uma lista de palavras que serão excluídas dos textos durante o treinamento. Essas palavras não serão "vistas" pelo modelo na leitura dos textos. Se quiser criar o arquivo de configuração padrão para ajustar antes do treinamento, use o parâmetro `-config` ao final da linha acima.</sub>
+
 
 ### Treinamento do modelo usando a estrutura de tokenização criada 
    - `python util_doc2vec_rapido.py -pasta ./meu_modelo -textos ./textos -epocas 1000`
