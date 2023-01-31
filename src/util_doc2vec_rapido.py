@@ -19,10 +19,10 @@ from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from numpy import linalg
 from scipy.spatial import distance
 
-from gensim.utils import simple_preprocess
 from gensim.parsing.preprocessing import preprocess_string, strip_tags, strip_punctuation, strip_numeric
 from gensim.corpora.textcorpus import remove_stopwords
 from nltk.stem.snowball import SnowballStemmer
+from copy import deepcopy
 
 '''
   config.json = {"vector_size": 300, "strip_numeric":true, "stemmer":false, "min_count": 5 , "token_br": true}
@@ -45,18 +45,23 @@ def map_thread(func, lista, n_threads=5):
 #####################################
 class Config():
     def __init__(self, arquivo = None, strip_numeric = False, stemmer = False,
-                 vector_size = 300, min_count = 5)  -> None:
-        self.strip_numeric = True
-        self.stemmer = False
-        self.vector_size = 300
-        self.min_count = 5
-        self.window = 10
+                 vector_size = 300, window = 5, min_count = 5, skip_gram = None, 
+                 skip_gram_window = 10, token_br = True)  -> None:
+        self.strip_numeric = strip_numeric
+        self.stemmer = stemmer
+        self.vector_size = vector_size
+        self.min_count = min_count
+        self.window = window
+        self.skip_gram = False # padrão
+        self.skip_gram_window = skip_gram_window
         self.max_total_epocas = 0
-        self.token_br = True
+        self.token_br = token_br
         self.log_treino_epocas = 0
         self.log_treino_vocab = 0
         if arquivo:
            self.carregar(arquivo) 
+        if skip_gram != None:
+           self.skip_gram = skip_gram # sobrepõe o config se for preenchido 
     
     def __str__(self) -> str:
         res = [f'{c}={v}' for c,v in self.as_dict().items()]
@@ -79,6 +84,8 @@ class Config():
                    self.min_count = _config.get('min_count',self.min_count)
                    self.token_br = _config.get('token_br',self.token_br)
                    self.window = _config.get('window',self.window)
+                   self.skip_gram = _config.get('skip_gram',self.skip_gram)
+                   self.skip_gram_window = _config.get('skip_gram_window',self.skip_gram_window)
                    self.max_total_epocas = _config.get('max_total_epocas',self.max_total_epocas)
                    self.log_treino_epocas = _config.get('log_treino_epocas',0)
                    self.log_treino_vocab = _config.get('log_treino_vocab',0)
@@ -86,9 +93,13 @@ class Config():
                 except:
                    return
 
-    def gravar_config(self, arquivo):
+    def gravar_config(self, arquivo, parametros_modelo = None):
+        _cfg = deepcopy(self.as_dict())
+        if parametros_modelo != None and type(parametros_modelo) is dict and any(parametros_modelo):
+           _cfg = deepcopy(self.as_dict())
+           _cfg.update({'model':parametros_modelo})
         with open(arquivo, 'w') as f:
-            f.write(json.dumps(self.as_dict(), indent=2))
+            f.write(json.dumps(_cfg, indent=2))
 
 class Doc2VecRapido():
     CORT_SIM_VOCAB_EXEMPLOS = 0.7 # corte para gereação do arquivo de exemplos de similaridade
@@ -98,7 +109,8 @@ class Doc2VecRapido():
                        min_count = 5, 
                        epochs = 1000,
                        strip_numeric = True,
-                       stemmer = False) -> None:
+                       stemmer = False,
+                       skip_gram = False) -> None:
         # configura arquivos da classe
         self.pasta_modelo = os.path.basename(pasta_modelo)
         self.arquivo_config = os.path.join(self.pasta_modelo,'config.json')
@@ -111,7 +123,8 @@ class Doc2VecRapido():
                              min_count = min_count, 
                              vector_size=vector_size, 
                              strip_numeric=strip_numeric, 
-                             stemmer=stemmer)
+                             stemmer=stemmer,
+                             skip_gram=skip_gram)
         self.model = None
         self.documentos_carregados = 0
         self.tagged_docs = None 
@@ -129,11 +142,14 @@ class Doc2VecRapido():
             # corrige o config para ficar consistente com o modelo
             if (self.config.vector_size != self.model.wv.vector_size) or \
                (self.config.log_treino_vocab != len(self.model.wv.vocab) ) or \
-               (self.config.window != self.model.window) :  
+               (self.config.window != self.model.window) or \
+               (self.config.skip_gram != self.model.sg == 1):  
                 self.config.vector_size = self.model.wv.vector_size
                 self.config.window = self.model.window
+                self.config.skip_gram = self.model.sg == 1
+                self.config.skip_gram_window = self.model.window if self.model.sg == 1 else self.config.skip_gram_window
                 self.config.log_treino_vocab = len(self.model.wv.vocab)
-                self.config.gravar_config(self.arquivo_config)
+                self.config.gravar_config(self.arquivo_config, self.get_parametros_modelo())
             self.printlog(f'Modelo carregado com {self.config.log_treino_vocab} termos e {self.config.vector_size} dimensões  \n - CONFIG: {self.config}', destaque=True)
             if not any(documentos):
                return
@@ -151,7 +167,7 @@ class Doc2VecRapido():
             self.tagged_docs = self.pre_processar(documentos =documentos, tags = tags, retornar_tagged_doc = True)
         self.documentos_carregados = len(documentos)
         self.printlog(f'Pronto para treinar o modelo {self.pasta_modelo} com {self.documentos_carregados} documentos')
-        self.config.gravar_config(self.arquivo_config)
+        self.config.gravar_config(self.arquivo_config, self.get_parametros_modelo())
 
     @classmethod
     def modelo_existe(cls, pasta_modelo):
@@ -199,13 +215,22 @@ class Doc2VecRapido():
         logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
         self.printlog(f'Treinando modelo com {self.documentos_carregados} documentos e {self.epochs} épocas \n - CONFIG: {self.config}', destaque=True)
         if self.model is None:
+           self.config.skip_gram_window = max(1, self.config.skip_gram_window)
+           self.config.window = max(1, self.config.window)
+           self.config.vector_size = max(10, self.config.vector_size)
+           self.config.min_count = max(1, self.config.min_count)
            model = Doc2Vec(vector_size=self.config.vector_size, 
                            min_count=self.min_count, 
                            epochs=self.epochs,
-                           window = self.config.window)
+                           window = self.config.skip_gram_window if self.config.skip_gram else self.config.window)
+           if self.config.skip_gram:
+              model.sg = 1 
            self.printlog(f'Criando vocab para o novo modelo')
            model.build_vocab(self.tagged_docs)
-           self.printlog(f'Treinando novo modelo')
+           if self.config.skip_gram:
+              self.printlog(f'Treinando novo modelo: vector_size={self.config.vector_size} Skip-gram w={model.window}')
+           else:
+              self.printlog(f'Treinando novo modelo vector_size={self.config.vector_size} CBow w={model.window}')
            self.config.log_treino_epocas = 0 #reinicia a contagem de épocas
         else:
            model = self.model
@@ -226,7 +251,7 @@ class Doc2VecRapido():
               self.config.log_treino_epocas = epocas_treinadas
               self.config.log_treino_vocab = len(model.wv.vocab)
               model.save(self.arquivo_modelo)
-              self.config.gravar_config(self.arquivo_config) # atualiza o config
+              self.config.gravar_config(self.arquivo_config, self.get_parametros_modelo(model)) # atualiza o config
         self.model = model 
         self.printlog(f'Gravando vocab treinado')
         # vocab treinado
@@ -281,6 +306,8 @@ class Doc2VecRapido():
         # processa um texto
         if self.config.token_br:
            texto = texto.replace('\n',' qbrpargf ')
+        # caracteres que sobrevivem à limpeza
+        texto = texto.replace('‘',' ').replace('“',' ').replace('”', ' ')
         if self.config.strip_numeric:
             tks = remove_stopwords(preprocess_string(texto, self.CUSTOM_FILTERS), stopwords = self.stop_words_usuario)
         else:
@@ -289,10 +316,13 @@ class Doc2VecRapido():
         if self.config.token_br:
            tks = [_ if _ != 'qbrpargf' else '#br' for _ in tks]
         if not self.config.stemmer:
-           return tks
-        return [self.STEMMER.stem(_) for _ in tks]        
+           return [_ for _ in tks if len(_) >= 2]
+        return [self.STEMMER.stem(_) for _ in tks if len(_) >= 2]        
 
     def teste_modelo(self):
+        #print('Init Sims', end='')
+        #self.model.init_sims(replace=True)
+        #print(' _o/')
         texto_1 = 'esse é um texto de teste para comparação - o teste depende de existirem os termos no vocab treinado'
         texto_2 = 'esse outro texto de teste para uma nova comparação - lembrando que o teste depende de existirem os termos no vocab treinado'
         texto_3 = 'esse é um texto de teste para comparação \n o teste depende de existirem os termos no vocab treinado'
@@ -375,6 +405,12 @@ class Doc2VecRapido():
                 if file_name.lower().endswith(f"{_extensao}"):
                    res.append(os.path.join(path,file_name))
         return res
+    
+    def get_parametros_modelo(self, model = None):
+        _model = model if model else self.model
+        if not _model:
+            return {}
+        return {c:v for c,v in _model.__dict__.items() if c[0] != '_' and type(v) in (str, int, float)}
 
 if __name__ == "__main__":
     import argparse
@@ -382,7 +418,13 @@ if __name__ == "__main__":
     parser.add_argument('-pasta', help='pasta para armazenamento ou carregamento do modelo - padrao meu_modelo', required=False)
     parser.add_argument('-textos', help='pasta com textos para treinamento do modelo - padrao meus_textos', required=False)
     parser.add_argument('-epocas', help='número de épocas para treinamento - padrão 200 ', required=False)
+    parser.add_argument('-config', help='gera o arquivo de config se não existir ', required=False, action='store_const', const=1)
+    parser.add_argument('-skipgram', help='treina o modelo Skip gram ', required=False, action='store_const', const=1)
+    parser.add_argument('-skip_gram', help='treina o modelo Skip gram ', required=False, action='store_const', const=1)
     args = parser.parse_args()
+
+    config = args.config
+    skip_gram = True if args.skipgram or args.skip_gram else None
 
     PASTA_MODELO = os.path.basename(args.pasta) if args.pasta else './meu_modelo'
     PASTA_TEXTOS = os.path.basename(args.textos) if args.textos else None
@@ -405,13 +447,18 @@ if __name__ == "__main__":
            exit()
        dv = Doc2VecRapido(pasta_modelo=PASTA_MODELO)
        dv.teste_modelo()
+       if config:
+          print('Config do modelo: ', dv.config)
        exit()
 
     if not os.path.isdir(PASTA_TEXTOS):
        print(f'ERRO: Não foi encontrada a pasta com os textos para treinamento em "{PASTA_TEXTOS}" ')
 
     # treinamento
-    dv = Doc2VecRapido(pasta_modelo=PASTA_MODELO, documentos=PASTA_TEXTOS, epochs=EPOCAS)
-    dv.treinar()
-    dv.teste_modelo()
+    dv = Doc2VecRapido(pasta_modelo=PASTA_MODELO, documentos=PASTA_TEXTOS, epochs=EPOCAS, skip_gram = skip_gram)
+    if config:
+       print('Config do modelo: ', dv.config)
+    else:
+       dv.treinar()
+       dv.teste_modelo()
 
