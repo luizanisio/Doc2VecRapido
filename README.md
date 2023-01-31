@@ -48,7 +48,9 @@ Classe em python que simplifica o processo de criação de um modelo `Doc2Vec` [
    - **min_count** = ocorrência mínima do token no corpus para ser treinado (padrão 5)
    - **token_br** = cria o token #br para treinar simulando a quebra de parágrafos (padrão true)
    - **vector_size** = número de dimensões do vetor que será treinado (padrão 300)
-   - **window** = a distância máxima entre a palavra atual e a prevista em uma frase (padrão 10)
+   - **window** = a distância máxima entre a palavra atual e a prevista em uma frase (padrão 5)
+   - **skip_gram** = True/False se o treinamento será feito com skip-gram
+   - **skip_gram_window** = a distância máxima entre a palavra atual e a prevista usando skip-gram (padrão 10)
    - **max_total_epocas** = número máximo de épocas para treinar (facilita para o caso de desejar completar até um valor treinando parcialmente - padrão 0 = sem limite)
 > :bulb: <sub> Nota: Você pode criar o arquivo `stopwords.txt' e colocar uma lista de palavras que serão exlcuídas dos textos durante o treinamento. Essas palavras não serão "vistas" pelo modelo na leitura dos textos.</sub>
 
