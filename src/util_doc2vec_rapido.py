@@ -4,11 +4,14 @@
 # Classes: 
 # Doc2VecRapido : permite carregar um modelo Doc2Vec treinado para aplicar em documentos de uma determinata área de conhecimento
 #                 permite ajustar as configurações do treinamento usando o arquivo config.json
+#                 permite treinar na versão 3.5.x e 4.0.x do gensim
 # Esse código, dicas de uso e outras informações: 
 #   -> https://github.com/luizanisio/Doc2VecRapido
 # Luiz Anísio 
 # 14/01/2023 - disponibilizado no GitHub  
 #######################################################################
+# Dicas de migração gensim 3.5 para 4.0: 
+#   https://github.com/RaRe-Technologies/gensim/wiki/Migrating-from-Gensim-3.x-to-4
 
 import logging
 
@@ -20,7 +23,6 @@ from numpy import linalg
 from scipy.spatial import distance
 
 from gensim.parsing.preprocessing import preprocess_string, strip_tags, strip_punctuation, strip_numeric
-from gensim.corpora.textcorpus import remove_stopwords
 from nltk.stem.snowball import SnowballStemmer
 from copy import deepcopy
 
@@ -103,8 +105,10 @@ class Config():
 
 class Doc2VecRapido():
     CORT_SIM_VOCAB_EXEMPLOS = 0.7 # corte para gereação do arquivo de exemplos de similaridade
+    PASTA_PADRAO = 'd2vmodel'
+    ARQUIVO_MODELO = 'doc2vecrapido.d2v'
 
-    def __init__(self, pasta_modelo = 'd2vmodel', documentos = [], tags = [], 
+    def __init__(self, pasta_modelo = PASTA_PADRAO, documentos = [], tags = [], 
                        vector_size = 300, 
                        min_count = 5, 
                        epochs = 1000,
@@ -114,7 +118,7 @@ class Doc2VecRapido():
         # configura arquivos da classe
         self.pasta_modelo = os.path.basename(pasta_modelo)
         self.arquivo_config = os.path.join(self.pasta_modelo,'config.json')
-        self.arquivo_modelo = os.path.join(pasta_modelo,'doc2vecrapido.d2v')
+        self.arquivo_modelo = os.path.join(pasta_modelo, self.ARQUIVO_MODELO)
         self.arquivo_vocab = os.path.join(pasta_modelo,'vocab_treinado.txt')
         self.arquivo_vocab_sim = os.path.join(pasta_modelo,'vocab_similares.txt')
         self.arquivo_stopwords = os.path.join(pasta_modelo,'stopwords.txt')
@@ -138,17 +142,18 @@ class Doc2VecRapido():
         if os.path.isfile(self.arquivo_modelo):
             self.printlog(f'Carregando modelo {self.pasta_modelo}')
             self.model = Doc2Vec.load(self.arquivo_modelo)
+            _dados_modelo = self.dados_modelo_por_versao(self.model)
             # atualiza o config se precisar pois alguns parâmetros não mudam depois do treinamento
             # corrige o config para ficar consistente com o modelo
             if (self.config.vector_size != self.model.wv.vector_size) or \
-               (self.config.log_treino_vocab != len(self.model.wv.vocab) ) or \
+               (self.config.log_treino_vocab != _dados_modelo.get('vocab_length',0) ) or \
                (self.config.window != self.model.window) or \
                (self.config.skip_gram != self.model.sg == 1):  
                 self.config.vector_size = self.model.wv.vector_size
                 self.config.window = self.model.window
                 self.config.skip_gram = self.model.sg == 1
                 self.config.skip_gram_window = self.model.window if self.model.sg == 1 else self.config.skip_gram_window
-                self.config.log_treino_vocab = len(self.model.wv.vocab)
+                self.config.log_treino_vocab = _dados_modelo.get('vocab_length',0)
                 self.config.gravar_config(self.arquivo_config, self.get_parametros_modelo())
             self.printlog(f'Modelo carregado com {self.config.log_treino_vocab} termos e {self.config.vector_size} dimensões  \n - CONFIG: {self.config}', destaque=True)
             if not any(documentos):
@@ -168,6 +173,15 @@ class Doc2VecRapido():
         self.documentos_carregados = len(documentos)
         self.printlog(f'Pronto para treinar o modelo {self.pasta_modelo} com {self.documentos_carregados} documentos')
         self.config.gravar_config(self.arquivo_config, self.get_parametros_modelo())
+
+    @classmethod
+    def novo_config(cls, pasta_modelo):
+        if not os.path.isdir(pasta_modelo):
+            os.makedirs(pasta_modelo)
+        arquivo = os.path.join(pasta_modelo, 'config.json')
+        cf = Config(arquivo=arquivo)
+        cf.gravar_config(arquivo=arquivo)
+        print(f'Arquivo de configuração criado em {arquivo}')
 
     @classmethod
     def modelo_existe(cls, pasta_modelo):
@@ -211,6 +225,19 @@ class Doc2VecRapido():
                    res.append( TaggedDocument(tokens, [str(i)]) )
         return res
 
+    def dados_modelo_por_versao(self, modelo):
+        if 'vocab' in modelo.wv.__dict__:
+           # versão 3.5.0
+           dados = {'ver': '3.5.x'}            
+           dados['vocab'] = sorted([str(_) for _ in modelo.wv.vocab])
+           dados['vocab_length'] = len(dados['vocab'])
+        else:
+           # versão 4.0.1  
+           dados = {'ver': '4.x.x'}            
+           dados['vocab'] = sorted([str(_) for _ in modelo.wv.key_to_index])
+           dados['vocab_length'] = len(dados['vocab'])
+        return dados
+
     def treinar(self):
         logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
         self.printlog(f'Treinando modelo com {self.documentos_carregados} documentos e {self.epochs} épocas \n - CONFIG: {self.config}', destaque=True)
@@ -242,6 +269,7 @@ class Doc2VecRapido():
         if self.config.max_total_epocas > 0:
            if total_epocas + epocas_treinadas > self.config.max_total_epocas:
               total_epocas = self.config.max_total_epocas - epocas_treinadas 
+        _dados_modelo = dict()
         while total_epocas > 0:
               bloco_epocas = 50 if total_epocas > 50 else total_epocas
               total_epocas -= bloco_epocas
@@ -249,18 +277,22 @@ class Doc2VecRapido():
               epocas_treinadas += bloco_epocas
               self.printlog(f'Gravando modelo após bloco com {bloco_epocas} épocas\n - total {epocas_treinadas} épocas treinadas \n - épocas restantes: {total_epocas}', destaque=True)
               self.config.log_treino_epocas = epocas_treinadas
-              self.config.log_treino_vocab = len(model.wv.vocab)
+              if not any(_dados_modelo):
+                 _dados_modelo = self.dados_modelo_por_versao(model)
+              self.config.log_treino_vocab = _dados_modelo['vocab_length']
               model.save(self.arquivo_modelo)
               self.config.gravar_config(self.arquivo_config, self.get_parametros_modelo(model)) # atualiza o config
+        if not any(_dados_modelo):
+            _dados_modelo = self.dados_modelo_por_versao(model)
         self.model = model 
         self.printlog(f'Gravando vocab treinado')
         # vocab treinado
         with open(self.arquivo_vocab,'w') as f:
-             f.write('\n'.join(sorted([str(_) for _ in self.model.wv.vocab])))
+             f.write('\n'.join(_dados_modelo.get('vocab',[])))
         # similares do vocab
         self.printlog(f'Gravando log de similaridade entre os termos')
         with open(self.arquivo_vocab_sim,'w') as f:
-             for termo in sorted(list(self.model.wv.vocab)):
+             for termo in _dados_modelo.get('vocab',[]):
                  ms = self.model.wv.most_similar(termo, topn=3)
                  ms = [f'{_[0]}={_[1]:.2f}' for _ in ms if _[1]>=self.CORT_SIM_VOCAB_EXEMPLOS]
                  if len(ms) > 0:
@@ -274,12 +306,20 @@ class Doc2VecRapido():
         self.printlog(f'Modelo gravado em "{self.arquivo_modelo}"', destaque=True)
 
 
-    def vetor(self, texto, epochs = 100, normalizar = True):
+    def vetor(self, texto, epochs = 100, normalizar = True, retornar_tokens = False):
         tokens = self.pre_processar(documentos = texto, retornar_tagged_doc=False)
-        vetor = self.model.infer_vector(tokens, epochs = epochs) 
+        if len(tokens) == 0:
+            # sem tokens para vetorizar, joga o vetor no rodapé do espaço vetorial :)
+            vetor = [1 for _ in range(self.model.wv.vector_size) ]
+        else:
+            vetor = self.model.infer_vector(tokens, epochs = epochs) 
         if normalizar:
-           return [float(f) for f in vetor / linalg.norm(vetor)]     
-        return [float(f) for f in vetor]
+           vetor = [float(f) for f in vetor / linalg.norm(vetor)]     
+        else:
+           vetor = [float(f) for f in vetor]
+        if retornar_tokens:
+           return vetor, tokens
+        return vetor 
 
     def similaridade(self, texto1, texto2, epochs = 100):
         vetor1 = self.vetor(texto1, epochs=epochs, normalizar=False) 
@@ -309,9 +349,9 @@ class Doc2VecRapido():
         # caracteres que sobrevivem à limpeza
         texto = texto.replace('‘',' ').replace('“',' ').replace('”', ' ')
         if self.config.strip_numeric:
-            tks = remove_stopwords(preprocess_string(texto, self.CUSTOM_FILTERS), stopwords = self.stop_words_usuario)
+            tks = self.remove_stopwords(preprocess_string(texto, self.CUSTOM_FILTERS))
         else:
-            tks = remove_stopwords(preprocess_string(texto, self.CUSTOM_FILTERS_NUM), stopwords= self.stop_words_usuario)
+            tks = self.remove_stopwords(preprocess_string(texto, self.CUSTOM_FILTERS_NUM))
         # cria um token para a quebra de linha
         if self.config.token_br:
            tks = [_ if _ != 'qbrpargf' else '#br' for _ in tks]
@@ -319,12 +359,15 @@ class Doc2VecRapido():
            return [_ for _ in tks if len(_) >= 2]
         return [self.STEMMER.stem(_) for _ in tks if len(_) >= 2]        
 
+    def remove_stopwords(self, tokens):
+        return [_ for _ in tokens if _ and _ not in self.stop_words_usuario]
+
     def teste_modelo(self):
         #print('Init Sims', end='')
         #self.model.init_sims(replace=True)
         #print(' _o/')
         texto_1 = 'esse é um texto de teste para comparação - o teste depende de existirem os termos no vocab treinado'
-        texto_2 = 'esse outro texto de teste para uma nova comparação - lembrando que o teste depende de existirem os termos no vocab treinado'
+        texto_2 = 'temos aqui um outro texto de teste para uma nova comparação mais distante - lembrando que o teste depende de existirem os termos no vocab treinado'
         texto_3 = 'esse é um texto de teste para comparação \n o teste depende de existirem os termos no vocab treinado'
         _texto_3 = texto_3.replace('\n',r'\n')
         texto_1_oov = texto_1.replace('texto','texto oovyyyyyyy oovxxxxxxxx').replace('teste', 'oovffffff teste oovssssss')
@@ -353,7 +396,7 @@ class Doc2VecRapido():
     def carregar_documentos(self, pasta):
         self.printlog(f'Carregando documentos da pasta "{pasta}"')
         arquivos = self.listar_arquivos(pasta)
-        self.printlog(f'Documentos encontrados: "{len(arquivos)}"')
+        self.printlog(f'Documentos encontrados: {len(arquivos)}')
         documentos = []
         def _func(i):
             arquivo = arquivos[i]
@@ -391,7 +434,7 @@ class Doc2VecRapido():
         if not texto:
             with open(arquivo, encoding='latin1', errors='ignore') as f:
                 texto = f.read()
-        return texto
+        return texto.replace('<br>','\n') 
 
     @classmethod
     def listar_arquivos(cls, pasta, extensao='txt'):
@@ -443,6 +486,9 @@ if __name__ == "__main__":
        if Doc2VecRapido.modelo_existe(PASTA_MODELO):
            print(f'- modelo encontrado em "{PASTA_MODELO}"')
        else:
+           if config:
+              Doc2VecRapido.novo_config(PASTA_MODELO)
+              exit()  
            print(f' ERRO: modelo não encontrado em "{PASTA_MODELO}"')
            exit()
        dv = Doc2VecRapido(pasta_modelo=PASTA_MODELO)
