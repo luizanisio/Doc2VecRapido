@@ -1,7 +1,7 @@
 # Doc2VecRapido
 
 Classe em python que simplifica o processo de criação de um modelo `Doc2Vec` [`Gensim 4.0.1`](https://radimrehurek.com/gensim/models/doc2vec.html) sem tantos parâmetros de configuração como o [Doc2VecFacil](/Doc2VecFacil), mas já traz um resultado excelente em vários contextos. Também tem algumas dicas de agrupamento de documentos similares, uso de `ElasticSearch` e `SingleStore`.<br>
-Agora com a alternativa `Doc2BertRapido` que permite usar modelos do Bert, como o [BERTimbau](https://huggingface.co/neuralmind/bert-base-portuguese-cased) para vetorizar e agrupaer os documentos sem a necessidade de treinar um modelo específico.
+Agora com a alternativa [Doc2BertRapido](./src/util_doc2bert_rapido.py) que permite usar modelos do Bert, como o [BERTimbau](https://huggingface.co/neuralmind/bert-base-portuguese-cased) para vetorizar e agrupaer os documentos sem a necessidade de treinar um modelo específico.
 
 - se você não sabe o que é um modelo de similaridade, em resumo é um algoritmo não supervisionado para criar um modelo que transforma frases ou documentos em vetores matemáticos que podem ser comparados retornando um valor equivalente à similaridade semântica de documentos do mesmo contexto/domínio dos documentos usados no treinamento do modelo (doc2vec). Nesse cenário a máquina 'aprende' o vocabulário treinado e o contexto em que as palavras aparecem (word2vec), permitindo identificar a similaridade entre os termos, as frases e os documentos. O doc2vec amplia o treinamento do word2vec para frases ou documentos.
 - alguns links para saber mais:
