@@ -1,6 +1,8 @@
 # Doc2VecRapido
 
-Classe em python que simplifica o processo de criação de um modelo `Doc2Vec` [`Gensim 4.0.1`](https://radimrehurek.com/gensim/models/doc2vec.html) sem tantos parâmetros de configuração como o [Doc2VecFacil](/Doc2VecFacil), mas já traz um resultado excelente em vários contextos. Também tem algumas dicas de agrupamento de documentos similares, uso de `ElasticSearch` e `SingleStore`.
+Classe em python que simplifica o processo de criação de um modelo `Doc2Vec` [`Gensim 4.0.1`](https://radimrehurek.com/gensim/models/doc2vec.html) sem tantos parâmetros de configuração como o [Doc2VecFacil](/Doc2VecFacil), mas já traz um resultado excelente em vários contextos. Também tem algumas dicas de agrupamento de documentos similares, uso de `ElasticSearch` e `SingleStore`.<br>
+Agora com a alternativa `Doc2BertRapido` que permite usar modelos do Bert, como o [BERTimbau](https://huggingface.co/neuralmind/bert-base-portuguese-cased) para vetorizar e agrupaer os documentos sem a necessidade de treinar um modelo específico.
+
 - se você não sabe o que é um modelo de similaridade, em resumo é um algoritmo não supervisionado para criar um modelo que transforma frases ou documentos em vetores matemáticos que podem ser comparados retornando um valor equivalente à similaridade semântica de documentos do mesmo contexto/domínio dos documentos usados no treinamento do modelo (doc2vec). Nesse cenário a máquina 'aprende' o vocabulário treinado e o contexto em que as palavras aparecem (word2vec), permitindo identificar a similaridade entre os termos, as frases e os documentos. O doc2vec amplia o treinamento do word2vec para frases ou documentos.
 - alguns links para saber mais:
   - [`Paragraph Vector 2014`](https://cs.stanford.edu/~quocle/paragraph_vector.pdf) - a origem do Doc2Vec
@@ -12,7 +14,7 @@ Classe em python que simplifica o processo de criação de um modelo `Doc2Vec` [
   - [`ti-exame`](https://www.ti-enxame.com/pt/python/como-calcular-similaridade-de-sentenca-usando-o-modelo-word2vec-de-gensim-com-python/1045257495/) - Word2Vec
   - [`Tomas Mikolov paper`](https://arxiv.org/pdf/1301.3781.pdf) - mais um artigo sobre o Doc2Vec
 
-- Com essa comparação vetorial, é possível encontrar documentos semelhantes a um indicado ou [`agrupar documentos semelhantes`](https://github.com/luizanisio/Doc2VecFacil/blob/main/docs/agrupamento.md) entre si de uma lista de documentos (será disponibilizado um código específico para o Doc2VecRapido). Pode-se armazenar os vetores no `SingleStore` ou `ElasticSearch` para permitir uma pesquisa vetorial rápida e combinada com metadados dos documentos, como nas dicas [aqui](#dicas).
+- Com essa comparação vetorial, é possível encontrar documentos semelhantes a um indicado ou [`agrupar documentos semelhantes`](./README_agrupamento.md) entre si de uma lista de documentos (disponível para uso com o Doc2VecRapido ou o Doc2BertRapido). Pode-se armazenar os vetores no `SingleStore` ou `ElasticSearch` para permitir uma pesquisa vetorial rápida e combinada com metadados dos documentos, como nas dicas [aqui](#dicas).
 
 - Em um recorte do espaço vetorial criado pelo treinamento do modelo, pode-se perceber que documentos semelhantes ficam próximos enquanto documentos diferentes ficam distantes entre si. Então agrupar ou buscar documentos semelhantes é uma questão de identificar a distância vetorial dos documentos após o treinamento. Armazenando os vetores dos documentos no `ElasticSearch` ou `SingleStore`, essa tarefa é simplificada, permitindo construir sistemas de busca semântica com um esforço pequeno. Uma técnica parecida pode ser usada para treinar e armazenar vetores de imagens para encontrar imagens semelhantes, mas isso fica para outro projeto. Segue aqui uma [`view`](docs/readme_dicas.md) e uma [`procedure`](docs/readme_dicas.md) para busca de similares e agrupamentos no SingleStore.
 
@@ -52,7 +54,6 @@ Classe em python que simplifica o processo de criação de um modelo `Doc2Vec` [
    - **skip_gram_window** = a distância máxima entre a palavra atual e a prevista usando skip-gram (padrão 10)
    - **max_total_epocas** = número máximo de épocas para treinar (facilita para o caso de desejar completar até um valor treinando parcialmente - padrão 0 = sem limite)
 > :bulb: <sub> Nota: Você pode criar o arquivo `stopwords.txt` e colocar uma lista de palavras que serão excluídas dos textos durante o treinamento. Essas palavras não serão "vistas" pelo modelo na leitura dos textos. Se quiser criar o arquivo de configuração padrão para ajustar antes do treinamento, use o parâmetro `-config` como no exemplo: `python util_doc2vec_rapido.py -pasta ./meu_modelo -config`.</sub>
-
 
 ### Treinamento do modelo usando a estrutura de tokenização criada 
    - `python util_doc2vec_rapido.py -pasta ./meu_modelo -textos ./textos -epocas 1000`

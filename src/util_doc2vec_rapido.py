@@ -26,6 +26,8 @@ from gensim.parsing.preprocessing import preprocess_string, strip_tags, strip_pu
 from nltk.stem.snowball import SnowballStemmer
 from copy import deepcopy
 
+from util_doc2util import UtilDocs
+
 '''
   config.json = {"vector_size": 300, "strip_numeric":true, "stemmer":false, "min_count": 5 , "token_br": true}
 
@@ -35,14 +37,6 @@ from copy import deepcopy
   token_br = cria o token #br para treinar simulando a quebra de parágrafos
   vector_size = número de dimensões do vetor que será treinado
 '''
-#####################################
-from multiprocessing.dummy import Pool as ThreadPool
-def map_thread(func, lista, n_threads=5):
-    # print('Iniciando {} threads'.format(n_threads))
-    pool = ThreadPool(n_threads)
-    pool.map(func, lista)
-    pool.close()
-    pool.join()  
 
 #####################################
 class Config():
@@ -117,6 +111,7 @@ class Doc2VecRapido():
                        skip_gram = False) -> None:
         # configura arquivos da classe
         self.pasta_modelo = os.path.basename(pasta_modelo)
+        self.nome_modelo = os.path.splitext(self.pasta_modelo)[-1]
         self.arquivo_config = os.path.join(self.pasta_modelo,'config.json')
         self.arquivo_modelo = os.path.join(pasta_modelo, self.ARQUIVO_MODELO)
         self.arquivo_vocab = os.path.join(pasta_modelo,'vocab_treinado.txt')
@@ -190,17 +185,7 @@ class Doc2VecRapido():
         return os.path.isfile(_nome_modelo)
 
     def printlog(self,msg, retornar_msg_erro=False, destaque = False):
-        msg = f'> Doc2VecRapido: {msg}'
-        if retornar_msg_erro:
-            return msg
-        if destaque: 
-           self.print_linha()
-        print(msg)
-        if destaque: 
-           self.print_linha()
-
-    def print_linha(self, caractere='='):
-        print(str(caractere * 70)[:70])
+        UtilDocs.printlog('Doc2VecRapido', msg, retornar_msg_erro, destaque)
 
     def pre_processar(self, documentos = [], tags=None, retornar_tagged_doc = True):
         # documentos como texto único, infere que tags é apenas dele ou não tem
@@ -340,7 +325,7 @@ class Doc2VecRapido():
            nova = [i for i in range(len(texto))]
            def _func(i):
                nova[i] = self.preprocess_br(texto[i])
-           map_thread(func = _func, lista = nova) 
+           UtilDocs.map_thread(func = _func, lista = nova) 
            return nova
         
         # processa um texto
@@ -371,16 +356,16 @@ class Doc2VecRapido():
         texto_3 = 'esse é um texto de teste para comparação \n o teste depende de existirem os termos no vocab treinado'
         _texto_3 = texto_3.replace('\n',r'\n')
         texto_1_oov = texto_1.replace('texto','texto oovyyyyyyy oovxxxxxxxx').replace('teste', 'oovffffff teste oovssssss')
-        self.print_linha()
+        UtilDocs.print_linha()
         print(' >>>> TESTE DO MODELO <<<<')
-        self.print_linha('- ')
+        UtilDocs.print_linha('- ')
         print('- Texto 01:  ', texto_1)
         print('  > tokens: ', '|'.join(self.preprocess_br(texto_1)) )
         print('- Texto 02:  ', texto_2)
         print('  > tokens: ', '|'.join(self.preprocess_br(texto_2)) )
         print('- Texto 03:  ', _texto_3)
         print('  > tokens: ', '|'.join(self.preprocess_br(texto_3)) )
-        self.print_linha('- ')
+        UtilDocs.print_linha('- ')
         sim = 100*self.similaridade(texto_1, texto_1)
         print(f'Similaridade entre o texto 01 e ele mesmo: {sim:.2f}%')          
         sim = 100*self.similaridade(texto_1, texto_1_oov)
@@ -389,71 +374,29 @@ class Doc2VecRapido():
         print(f'Similaridade entre os textos 01 e 02: {sim:.2f}%')          
         sim = 100*self.similaridade(texto_1, texto_3)
         print(f'Similaridade entre os textos 01 e 03: {sim:.2f}%')          
-        self.print_linha()
+        UtilDocs.print_linha()
 
     # carrega os documentos txt de uma pasta e usa como tag o que estiver depois da palavra tags separadas por espaço
     # exemplo: 'arquivo texto 1 tags a b c.txt' tags será igual a ['a', 'b', 'c']
     def carregar_documentos(self, pasta):
-        self.printlog(f'Carregando documentos da pasta "{pasta}"')
-        arquivos = self.listar_arquivos(pasta)
-        self.printlog(f'Documentos encontrados: {len(arquivos)}')
-        documentos = []
-        def _func(i):
-            arquivo = arquivos[i]
-            documento = self.carregar_arquivo(arquivo)
-            rotulo = os.path.split(arquivo)[1]            
-            rotulo = os.path.splitext(rotulo)[0].lower()
-            # se encontrar tag ou tags no nome do arquivo, busca as tags
-            if rotulo.find('tags ') >=0:
-               rotulos = rotulo.split('tags ')[1].strip().split(' ')
-               print(f'Rótulo encontrado: {arquivo} >> tags: {rotulos}')
-            elif rotulo.find('tag ') >=0:
-               rotulos = rotulo.split('tag ')[1].strip().split(' ')
-               print(f'Rótulo encontrado: {arquivo} >> tags: {rotulos}')
-            else:
-               rotulos = [rotulo.strip()]
-            documentos.append( (documento, rotulos) )
-        map_thread(_func,list(range(len(arquivos))) )
-        self.printlog(f'Documentos carregados: {len(documentos)}')
-        #documentos, rotulos = list(zip(*documentos))
-        #self.printlog(f'Exemplo de documento: {documentos[0]} e rótulos: {rotulos[0]}')
-        return list(zip(*documentos))
-
-    # função simples de carga de arquivos que tenta descobrir o tipo de arquivo (utf8, ascii, latin1)
-    @classmethod
-    def carregar_arquivo(cls, arquivo):
-        tipos = ['utf8', 'ascii', 'latin1']
-        texto = None
-        for tp in tipos:
-            try:
-                with open(arquivo, encoding=tp) as f:
-                    texto = f.read()
-                    break
-            except UnicodeError:
-                continue
-        if not texto:
-            with open(arquivo, encoding='latin1', errors='ignore') as f:
-                texto = f.read()
-        return texto.replace('<br>','\n') 
-
-    @classmethod
-    def listar_arquivos(cls, pasta, extensao='txt'):
-        if not os.path.isdir(pasta):
-            msg = f'Não foi encontrada a pasta "{pasta}" para listar os arquivos "{extensao}"'
-            raise Exception(msg)
-        res = []
-        _extensao = f".{extensao}".lower() if extensao else ''
-        for path, _, file_list in os.walk(pasta):
-            for file_name in file_list:
-                if file_name.lower().endswith(f"{_extensao}"):
-                   res.append(os.path.join(path,file_name))
-        return res
-    
+        return UtilDocs.carregar_documentos(pasta)
+   
     def get_parametros_modelo(self, model = None):
         _model = model if model else self.model
         if not _model:
             return {}
         return {c:v for c,v in _model.__dict__.items() if c[0] != '_' and type(v) in (str, int, float)}
+
+    def vetorizar_dados(self, dados, epocas):
+        def _vetorizar(i):
+            if 'vetor' in dados[i] and dados[i]['vetor'] is not None:
+               return
+            texto = dados[i].get('texto', '')
+            vetor = self.vetor(texto=texto, epochs=epocas, retornar_tokens = False)
+            dados[i]['vetor'] = vetor
+            dados[i]['hash'] = UtilDocs.hash(texto) if texto else 'vazio'
+        UtilDocs.map_thread(_vetorizar, lista = range(len(dados)), n_threads=10)     
+        UtilDocs.progress_bar(1,1,' vetorização Doc2Vec finalizada                                ')
 
 if __name__ == "__main__":
     import argparse
