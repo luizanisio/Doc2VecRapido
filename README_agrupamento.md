@@ -1,8 +1,8 @@
 # Dicas de uma forma rápida para agrupar os documentos vetorizados
 - Com vetores que possibilitam a comparação de similaridade de documentos, pode-se agrupar por similaridade um conjunto de arquivos, por exemplo.
-- O código abaixo permite o uso do modelo treinado com o [`Doc2VecRapido`](../README.md) para gerar uma planilha excel com o nome dos arquivos e os grupos formados pela similaridade entre eles.
+- O código abaixo permite o uso do modelo treinado com o [`Doc2VecRapido`](./README.md) ou carregado com o [`Doc2BertRapido`](./README.md) para gerar uma planilha excel com o nome dos arquivos e os grupos formados pela similaridade entre eles, com a possibilidade de plotar os grupos formados.
   
-- [`AgrupamentoRapido`](../src/util_agrupamento_rapido.py)  
+- [`AgrupamentoRapido`](./src/util_agrupamento_rapido.py)  
 
 > :bulb: <sub>Nota: existem diversas formas de agrupar vetores, como [`HDBScan`](https://hdbscan.readthedocs.io/en/latest/how_hdbscan_works.html), [`DBScan`](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html), [`K-Means`](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html), dentre outros. A forma apresentada aqui é mais uma forma, simples, e que não exige identificar número de grupos e nem extrapola a similaridade por critérios de borda ou continuidade. Mas cada caso é um caso e pode-se aplicar a técnica que melhor resolva o problema.</sub>
 
@@ -24,11 +24,11 @@
 - se for usado o parâmetro `-plotar`, será criado o arquivo de saída com a extensão `.png` 
 - exemplo de resultado do agrupamento:
 
-![exemplo de agrupamento de arquivos](../exemplos/img_agrupamento.png?raw=true "agrupamento de arquivos") 
+![exemplo de agrupamento de arquivos](./exemplos/img_agrupamento.png?raw=true "agrupamento de arquivos") 
 
 - Exemplo do plot de um agrupamento de 50mil vetores 2d randômicos para ter uma ideia de como os grupos são formados (esquerda). Com um plot de 2mil vetores 300d reduzidos para 2d com a criação de 28 grupos (em cores) para 82 vetores e os outros ficaram órfãos (modelo de teste treinado com 100 épocas apenas). Cada cor representa um grupo formado.
 
-![exemplo plot agrupamento](../exemplos/img_agrupamento_50k_2k.png?raw=true "Exemplo de agrupamento de 50mil vetores 2d randômicos e 2mil vetores 300d de textos")
+![exemplo plot agrupamento](./exemplos/img_agrupamento_50k_2k.png?raw=true "Exemplo de agrupamento de 50mil vetores 2d randômicos e 2mil vetores 300d de textos")
 
 > :bulb: <sub>Nota: o arquivo usado como principal para capturar outros arquivos similares terá a similaridade 100 na planilha, pode ser considerado o centróide do grupo.</sub>
  
