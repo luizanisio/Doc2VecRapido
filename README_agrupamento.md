@@ -73,7 +73,7 @@
     arquivo_saida = 'meu agrupamento'
     # retorna um datafram com os grupos e os dados enviados dados = [{dado1}, {dado2}]
     # cada dado com o formato {'campo1':valor1, .... 'vetor': [floats...]}
-    df = AgrupamentoRapido(dados = dados, 
+    agr = AgrupamentoRapido(dados = dados, 
                            pasta_modelo=modelo, 
                            similaridade=similaridade, 
                            arquivo_cache_vetores=arquivo_cache,
@@ -81,21 +81,21 @@
                            campo_texto = True)
     
     
-    print(df)
+    print(agr.dados)
 ```
 
 - usando o código para agrupar vetores de uma lista de dicionários de dados [{'vetor': ..., 'nome': 'xxx', ...}, ...].
-- é requisito ter uma coluna `vetor` com o vetor no formato list de floats.
-- opcionalmente o parâmetro `dados` pode ser uma lista de vetores [[0.24, 0.55, 0.23 ...], ...]
+- é requisito ter uma coluna `vetor` com o vetor no formato list de floats caso não queira usar algum modelo.
+- ou pode-se passar o nome do modelo e incluir uma coluna `texto` para que o vetor seja criado
 - será retornado um DataFrame com os dados incluindo as colunas: `grupo`, `similaridade` e `centroide`.
 ```python
     from util_agrupamento_rapido import UtilAgrupamentoRapido
     similaridade = 85
     # suponha que os dados carregados são [{'nome_documento': 'bla bla bla,'vetor': [0.23, 0.56, 0.44, ...], 'data_documento' : '2021-01-01', ...}, ..]
     dados = carregar_vetores_do_banco(...)
-    util = UtilAgrupamentoRapido(dados, similaridade=similaridade)
+    agr = UtilAgrupamentoRapido(dados, similaridade=similaridade)
     # arredondando os dados - só para ilustrar
-    util.dados['similaridade'] = [round(s,2) for s in util.dados['similaridade']]
+    agr.dados['similaridade'] = [round(s,2) for s in util.dados['similaridade']]
     # dados é um DataFrame com os dados originais recebidos do banco incluindo as novas colunas
-    print(util.dados)
+    print(agr.dados)
 ```
