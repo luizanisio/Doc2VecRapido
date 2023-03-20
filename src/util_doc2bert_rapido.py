@@ -47,7 +47,8 @@ class Doc2BertRapido():
 
          self.printlog(f'Carregando modelo {self.nome_modelo}')
          self.model = SentenceTransformer(self.modelo)
-         self.limite_tokens_modelo = int(self.model.get_max_seq_length()) * self.CARACTERES_POR_TOKEN
+         self.limite_tokens_modelo = int(self.model.get_max_seq_length()) 
+         self.limite_caracteres_modelo = int(self.model.get_max_seq_length()) * self.CARACTERES_POR_TOKEN
 
       def vetor(self, texto, normalizar = True, retornar_tokens = False, retornar_float = True):
          vetores = self.model.encode([texto], normalize_embeddings=normalizar, show_progress_bar=False)
@@ -141,7 +142,7 @@ class Doc2BertRapido():
                 qtd_vazios += 1
                 continue
              # textos grandes, tem que vetorizar o batch para cada texto com seus pedacos
-             if len(_texto) > self.limite_tokens_modelo:
+             if len(_texto) > self.limite_caracteres_modelo:
                 vetor = self.vetor_texto_grande(_texto, retornar_tokens=False)
                 dados[i]['vetor'] = vetor
                 dados[i]['hash'] = dados[i].get('hash', UtilDocs.hash(_texto))
@@ -164,13 +165,13 @@ class Doc2BertRapido():
       RE_QUEBRA_GRANDES = re.compile('[^!?。.？！]+[!?。.？！]?')
       RE_QUEBRA_PEQUENAS = re.compile('[^,;]+[,;]?')
       def vetor_texto_grande(self, texto, retornar_tokens = True, normalizar = True, retornar_float = True):
-          if len(texto) <= self.limite_tokens_modelo:
+          if len(texto) <= self.limite_caracteres_modelo:
              return self.vetor(texto, normalizar=normalizar, retornar_tokens=retornar_tokens, retornar_float = retornar_float)
           primeiras_quebras = self.RE_QUEBRA_GRANDES.findall(texto)
           quebras = []
           # caso alguma quebra ainda seja muito grande, quebra por outros separadores
           for quebra in primeiras_quebras:
-             if len(quebra) > self.limite_tokens_modelo:
+             if len(quebra) > self.limite_caracteres_modelo:
                 novas = self.RE_QUEBRA_PEQUENAS.findall(quebra)
                 quebras += novas
              else:
@@ -179,7 +180,7 @@ class Doc2BertRapido():
           anterior = ''
           # une as quebras até o limite     
           for pedaco in quebras:
-             if len(anterior) + len(pedaco) > self.limite_tokens_modelo:
+             if len(anterior) + len(pedaco) > self.limite_caracteres_modelo:
                 if anterior:
                    pedacos.append(anterior)
                 anterior = pedaco
