@@ -110,8 +110,10 @@ class Doc2VecRapido():
                        stemmer = False,
                        skip_gram = False) -> None:
         # configura arquivos da classe
-        self.pasta_modelo = os.path.basename(pasta_modelo)
-        self.nome_modelo = os.path.splitext(self.pasta_modelo)[-1]
+        #if pasta_modelo and pasta_modelo[-1] in ['\\','/']:
+        #   pasta_modelo = pasta_modelo[:-1]                     
+        self.pasta_modelo = os.path.realpath(pasta_modelo)
+        self.nome_modelo = os.path.splitext(os.path.basename(self.pasta_modelo))[-1]
         self.arquivo_config = os.path.join(self.pasta_modelo,'config.json')
         self.arquivo_modelo = os.path.join(pasta_modelo, self.ARQUIVO_MODELO)
         self.arquivo_vocab = os.path.join(pasta_modelo,'vocab_treinado.txt')
@@ -413,8 +415,8 @@ if __name__ == "__main__":
     config = args.config
     skip_gram = True if args.skipgram or args.skip_gram else None
 
-    PASTA_MODELO = os.path.basename(args.pasta) if args.pasta else './meu_modelo'
-    PASTA_TEXTOS = os.path.basename(args.textos) if args.textos else None
+    PASTA_MODELO = str(args.pasta) if args.pasta else './meu_modelo'
+    PASTA_TEXTOS = os.path.realpath(args.textos) if args.textos else None
     if not PASTA_TEXTOS and args.textos and str(args.textos).endswith('/'):
        PASTA_TEXTOS = os.path.basename(args.textos[:-1])
     elif not PASTA_TEXTOS and args.textos and str(args.textos).endswith('\\'):
