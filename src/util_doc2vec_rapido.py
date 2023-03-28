@@ -329,6 +329,7 @@ class Doc2VecRapido():
            return nova
         
         # processa um texto
+        texto = texto.replace('<br>', '\n')
         if self.config.token_br:
            texto = texto.replace('\n',' qbrpargf ')
         # caracteres que sobrevivem à limpeza
