@@ -7,8 +7,8 @@ Você encontra aqui:
 - Pesquisa vetorial SingleStore - [saiba mais](https://www.singlestore.com/blog/image-recognition-at-the-speed-of-memory-bandwidth/)
 
 Scripts:
-- tabelas e views: [`scripts_tabelas_views.sql`](../src/scripts_tabelas_views.sql)
-- procedure de agrupamento: [`script_procedure_agrupamento.sql`](../src/script_procedure_agrupamento.sql)
+- tabelas e views: [`scripts_tabelas_views.sql`](../src/sql/scripts_tabelas_views.sql)
+- procedure de agrupamento: [`script_procedure_agrupamento.sql`](../src/sql/script_procedure_agrupamento.sql)
 
 #### Caso queira dicas de estrutura de índice para o ElasticSearch
  - nesse link [`ElasticQueries`](https://github.com/luizanisio/PesquisaElasticFacil/blob/main/docs/ElasticQueries.md) estão disponíveis exemplos de criação de índice e pesquisas no ElasticSearch. 
