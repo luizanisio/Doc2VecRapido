@@ -13,15 +13,14 @@
   - `python util_agrupamento_rapido.py -modelo meu_modelo -textos meus_documentos -sim 80`
 
 - os parâmetros de `util_agrupamento_rapido.py` são:
-  - `-modelo` é a pasta do modelo treinado, podendo ser a pasta com pacote de treinamento ou a pasta final só com o modelo
-  - `-textos` é a pasta contendo os arquivos `.txt` que serão agrupados (se omitido, será procurada a pasta textos_grupos na pasta do pacote de treinamento)
+  - `-modelo` é a pasta do modelo treinado contendo o arquivo `doc2vecrapido.d2v`
+  - `-textos` é a pasta contendo os arquivos `.txt` que serão agrupados (se omitido, será procurada a pasta `./textos`)
   - `-sim` é a similaridade mínima para que um ou mais arquivos sejam agrupados, se não informado será usada a similaridade 90%
-  - `-epocas` é a quantidade de épocas para a inferência do vetor de cada arquivo, se não informado será inferido com `3` épocas.
-  - `-plotar` faz a redução de dimensões dos vetores agrupados para 2d e plota um gráfico. É uma apresentação interessante, mas em 2d alguns vetores aparecem juntos no gráfico mesmo estando distantes, o que dá uma falsa impressão de proximidade. Mas os vetores realmente próximos estarão representados com a mesma cor.
+  - `-epocas` é a quantidade de épocas para a inferência do vetor de cada arquivo, se não informado será inferido com `100` épocas.
+  - `-plotar` faz a redução de dimensões dos vetores agrupados para 2d e plota um gráfico. É uma apresentação interessante, mas em 2d alguns vetores aparecem juntos no gráfico mesmo estando distantes, o que dá uma falsa impressão de proximidade. Mas os vetores realmente próximos estarão representados com a mesma cor e o centróide com um tamanho maior.
   - `-texto` inclui uma coluna `trechos` com até 150 caracteres do texto analisado para auxiliar na análise do agrupamento
-  - `-saida` é o nome base do arquivo de saída que será completado com a similaridade e o nome do modelo. Se for o nome completo do arquivo, será usado como enviado.
+  - `-saida` é o nome base do arquivo de saída que será completado com a similaridade e o nome do modelo. Se for o nome completo do arquivo, será usado como enviado no parâmetro.
  
-- se for usado o parâmetro `-plotar`, será criado o arquivo de saída com a extensão `.png` 
 - exemplo de resultado do agrupamento:
 
 ![exemplo de agrupamento de arquivos](./exemplos/img_agrupamento.png?raw=true "agrupamento de arquivos") 
@@ -40,7 +39,7 @@
 5. se um vetor não tiver vetores similares, fica no grupo `-1` que é o grupo de órfãos
 6. uma última verificação é feita avaliando se algum vetor de um grupo estaria mais perto de um centroide de outro grupo criado posteriormente
 
-> :bulb: <sub>Nota: Como toda a vetorização é feita no momento do agrupamento, o processo pode ser demorado, principalmente com muitas épocas na inferência do vetor.</sub><br>
+> :bulb: <sub>Nota: Como toda a vetorização é feita no momento do agrupamento, o processo pode ser demorado, principalmente com muitas épocas na inferência do vetor. Para reduzir esse tempo, é criado um arquivo contendo o nome do modelo, com o cache dos vetores dos textos agrupados</sub><br>
 > <sub>- Em uma situação de serviço em produção, os vetores já estariam disponíveis em um banco de dados, elasticsearch ou outra forma de armazenamento, ficando um processo muito rápido de agrupamento.</sub><br>
 
 ## Como rodar o agrupamento pelo código
@@ -69,7 +68,7 @@
     modelo = 'bert-large'
     arquivo_cache = '__cache_bert_large__.json'
     dados = carregar_vetores_do_banco(...)
-    # arquivo_saida não precisa ser completo, será completado com a similaridade e o nome do modelo
+    # arquivo_saida não precisa ser o nome completo, será completado com a similaridade e o nome do modelo
     arquivo_saida = 'meu agrupamento'
     # retorna um datafram com os grupos e os dados enviados dados = [{dado1}, {dado2}]
     # cada dado com o formato {'campo1':valor1, .... 'vetor': [floats...]}
