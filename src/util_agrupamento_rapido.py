@@ -20,6 +20,7 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 from collections import Counter
 from sklearn.manifold import TSNE
+from util_pandas import UtilPandasExcel
 
 CST_TAMANHO_COLUNA_TEXTO = 250
 
@@ -322,9 +323,37 @@ class AgrupamentoRapido():
          colunas = [_[1] for _ in colunas]
          colunas = colunas_iniciais + colunas
          self.printlog(f' finalizando arquivo excel para {_arquivo_saida}')
-         self.dados.to_excel(_arquivo_saida,
-                              sheet_name=f'Agrupamento de arquivos',
-                              index = False, columns=colunas)
+         #self.dados.to_excel(_arquivo_saida,
+         #                     sheet_name=f'Agrupamento de arquivos',
+         #                     index = False, columns=colunas)
+         tp = UtilPandasExcel(_arquivo_saida)
+         _nome_plan = 'Agrupamento Rápido'
+         _dados = self.dados[colunas]
+         tp.write_df(_dados, sheet_name=_nome_plan,auto_width_colums_list=True, columns_titles=colunas)
+         # identificando a linha seguinte ao fim dos grupos
+         _grupos = list(_dados['grupo'])
+         _linha_orfao = _grupos.index(-1)
+         _grupos = list(_dados['grupo'])
+         _linha_orfao = _grupos.index(-1)
+         _linha_orfao = len(_dados) if _linha_orfao <0 else _linha_orfao
+         # colorindo o número dos grupos por par e ímpar
+         str_cells = tp.range_cols(first_col=0, last_col=1, first_row=1, last_row=_linha_orfao +1)
+         tp.conditional_value_color(sheet_name = _nome_plan, cells=str_cells, valor =  '=MOD($B1, 2)=0', cor = tp.COR_AZUL_CLARO)
+         str_cells = tp.range_cols(first_col=3, last_col=len(colunas)-1,first_row=1, last_row=_linha_orfao +1)
+         tp.conditional_value_color(sheet_name = _nome_plan, cells=str_cells, valor =  '=MOD($B1, 2)=0', cor = tp.COR_AZUL_CLARO)
+         # sem grupo
+         str_cells = tp.range_cols(first_col=0, last_col=len(colunas)-1,first_row=_linha_orfao+2, last_row=len(_dados)+1)
+         tp.conditional_value_color(sheet_name = _nome_plan, cells=str_cells, valor =  '1=1', cor = tp.COR_CINZA)
+         # idêntico
+         str_cells = tp.range_cols(first_col=3, last_col=3,first_row=1, last_row=_linha_orfao +1)
+         tp.conditional_value_color(sheet_name = _nome_plan, cells=str_cells, valor =  'D1="Sim"', cor = tp.FONTE_VERDE)
+         # colorindo as similaridades
+         str_cells = tp.range_cols(first_col=2, last_col=2,first_row=1, last_row=_linha_orfao +1)
+         tp.conditional_color(sheet_name = _nome_plan, cells=str_cells)
+         #tp.colorir_coluna(sheet_name=_nome_plan, idx_coluna = 1, funcao = lambda x: x>=0 and x%2==0)
+
+         #tp.header_formatting = False
+         tp.save()         
          self.printlog(f'Agrupamento finalizado e gravado em "{_arquivo_saida}"')
          return _arquivo_saida
 
