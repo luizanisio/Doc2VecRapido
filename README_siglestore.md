@@ -28,7 +28,7 @@ Scripts:
     from testes.vw_similares where sim>0.8 and seq_documento_1=42 
     order by sim desc
 ```
-![exemplo view similaridade](../exemplos/img_view_similaridade.png?raw=true "Exemplo de resultado da view de similaridade")
+![exemplo view similaridade](./exemplos/img_view_similaridade.png?raw=true "Exemplo de resultado da view de similaridade")
 
  > 💡 <sub> o SingleStore vai retornar um erro caso sejam comparados vetores de dimensôes diferentes, ele não impede inserir vetores de diversas dimensões em uma tabela, mas não consegue compará-los.</sub>
 
