@@ -118,7 +118,7 @@ select * from testes.grupos
   where grupo >0 and sessao = 'teste'
 order by grupo, sim desc 
 ```
-![exemplo procedure agrupamento](../exemplos/img_agrupamento_tabela.png?raw=true "Exemplo de resultado de agrupamento pela procedure")
+![exemplo procedure agrupamento](./exemplos/img_agrupamento_tabela.png?raw=true "Exemplo de resultado de agrupamento pela procedure")
 
 > :bulb: <sub>A coluna grupo será preenchida com o número do grupo formado. Será usado -1 para documentos não agrupados por não possuírem documentos semelhantes na relação de documentos da sessão de agrupamento. Será usado o grupo -2 caso o seq_documento informado não tenha vetor na tebela de vetores.</sub><br>
 
@@ -128,7 +128,7 @@ select * from testes.grupos_logs
   where sessao = 'teste'
 order by ordem
 ```
-![exemplo log procedure agrupamento](../exemplos/img_agrupamento_tabela_log.png?raw=true "Exemplo de logs gerados pela procedure")
+![exemplo log procedure agrupamento](./exemplos/img_agrupamento_tabela_log.png?raw=true "Exemplo de logs gerados pela procedure")
 
 > :bulb: <sub>O log contém um resumo do que está ocorrendo durante o agrupamento, podendo ser consultado por uma chamada de callback para atualizar a interface do usuário com o status do agrupamento para sessões muito grandes (dezenas ou centezas de milhares de vetores).</sub><br>
 
