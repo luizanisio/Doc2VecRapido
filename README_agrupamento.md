@@ -8,7 +8,7 @@
 
 ## Para usar o código de agrupamento
 
-- Esse é um exemplo simples de agrupamento, ele pode ser colocado em um serviço, por exemplo, e o usuário escolher os documentos de uma base do `SingleStore` ou `ElasticSearch`, os vetores já estariam gravados e seriam carregados, agrupados e o usuário receberia os grupos ou esses grupos seriam gravados em uma tabela para consulta do usuário.
+- Esse é um exemplo simples de agrupamento, ele pode ser colocado em um serviço, por exemplo, e o usuário escolher os documentos de uma base do `SingleStore` ou `ElasticSearch`, os vetores já estariam gravados e seriam carregados, agrupados e o usuário receberia os grupos ou esses grupos seriam gravados em uma tabela para consulta do usuário. Também é possível passar só os textos e a pasta com o modelo, que ele vai fazer a inferência dos vetores para o agrupamento.
 - Usando o códido por linha de comando:
   - `python util_agrupamento_rapido.py -modelo meu_modelo -textos meus_documentos -sim 80`
 
