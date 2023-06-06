@@ -86,11 +86,17 @@ class UtilPandas():
         # Criar um pool de processos
         with Pool(processes=num_processes) as pool:
             # Aplicar a função em cada parte do dataframe usando o pool de processos
-            results = pool.map(func, df_split)
+            df_func = [(_df, func) for _df in df_split]
+            results = pool.map(cls.__func_apply__, df_func)
 
         # Concatenar os resultados em um único dataframe
         return pd.concat(results)
     
+    @classmethod
+    def __func_apply__(cls, df_func):
+        df, func = df_func
+        return df.apply(func, axis=1)
+        
     ### EXEMPLO ##################################################
     @classmethod
     def __func_exemplo__(cls, item):
