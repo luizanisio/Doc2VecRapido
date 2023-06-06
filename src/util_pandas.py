@@ -1,16 +1,111 @@
 # -*- coding: utf-8 -*-
-#######################################################################
-# Arquivo de apoio para o Doc2VecRapido e o BertRapido 
-# Esse código, dicas de uso e outras informações: 
-#   -> https://github.com/luizanisio/Doc2VecRapido
-# Luiz Anísio 
-#######################################################################
+# referencia: 06/06/2023
+# https://github.com/luizanisio/Doc2VecRapido/blob/main/src/util_pandas.py
 
 import pandas as pd
 import os
-import re
 from xlsxwriter.utility import xl_col_to_name
 
+import regex as re 
+from hashlib import sha1 as hl_sha1
+from concurrent.futures import ThreadPoolExecutor
+from multiprocessing import Pool, cpu_count
+import numpy as np
+
+class UtilTexto():
+    ABREVIACOES = ['sra?s?', 'exm[ao]s?', 'ns?', 'nos?', 'doc', 'ac', 'publ', 'ex', 'lv', 'vlr?', 'vls?',
+                'exmo\(a\)', 'ilmo\(a\)', 'av', 'of', 'min', 'livr?', 'co?ls?', 'univ', 'resp', 'cli', 'lb',
+                'dra?s?', '[a-z]+r\(as?\)', 'ed', 'pa?g', 'cod', 'prof', 'op', 'plan', 'edf?', 'func', 'ch',
+                'arts?', 'artigs?', 'artg', 'pars?', 'rel', 'tel', 'res', '[a-z]', 'vls?', 'gab', 'bel',
+                'ilm[oa]', 'parc', 'proc', 'adv', 'vols?', 'cels?', 'pp', 'ex[ao]', 'eg', 'pl', 'ref',
+                'reg', 'f[ilí]s?', 'inc', 'par', 'alin', 'fts', 'publ?', 'ex', 'v. em', 'v.rev',
+                'des', 'des\(a\)', 'desemb']    
+    ABREVIACOES_RGX = re.compile(r'(?:\b{})\.\s*$'.format(r'|\b'.join(ABREVIACOES)), re.IGNORECASE)
+    PONTUACAO_FINAL = re.compile(r'([\.\?\!]\s+)')
+    PONTUACAO_FINAL_LISTA = {'.','?','!'}
+    RE_NUMEROPONTO = re.compile(r'(\d+)\.(?=\d)')
+    RE_NAO_LETRAS = re.compile('[^\wá-ú]')
+    # recebe uma lista de parágrafos quebrados (normalmente de um PDF)
+    # e tenta identificar quais deveriam estar juntos de acordo com o final de
+    # cada linha e o início da próxima
+    # retorna uma lista de parágrafos
+    @classmethod
+    def unir_paragrafos_ocr(cls, texto):
+        lista = texto if type(texto) is list else texto.split('\n')
+        res = []
+        def _final_pontuacao(_t):
+            if len(_t.strip()) == 0:
+                return False
+            return _t.strip()[-1] in cls.PONTUACAO_FINAL_LISTA
+        for i, linha in enumerate(lista):
+            if i==0:
+                res.append(linha)
+            elif (not _final_pontuacao(lista[i-1])) or \
+                (_final_pontuacao(lista[i-1]) and (cls.ABREVIACOES_RGX.search(lista[i-1]))):
+                if len(res) ==0:
+                   res =['']
+                res[len(res)-1] = res[-1].strip() + ' '+ linha
+            else:
+                res.append(linha)
+        return res
+
+    @classmethod
+    def hash_str(texto):
+        _txt = '|'.join(texto) if type(texto) is list else str(texto)
+        return hl_sha1(_txt.encode('utf-8')).hexdigest()    
+
+class UtilPandas():
+    
+    @classmethod
+    def split_dataframe(cls, df, num_batches):
+        # Dividir o dataframe em partes iguais
+        df_split = np.array_split(df, num_batches)
+        df_split = [_ for _ in df_split if len(_) > 0]
+        return df_split
+    
+    @classmethod
+    def apply_parallel(cls, df, func, num_threads=None):
+        num_threads = num_threads or cpu_count()
+
+        df_split = cls.split_dataframe(df, num_threads)
+       
+        # Criar um pool de threads
+        with ThreadPoolExecutor(max_workers=num_threads) as executor:
+            # Aplicar a função em cada parte do dataframe usando o pool de threads
+            results = executor.map(lambda _df:_df.apply(func, axis=1) , df_split)
+
+        # Concatenar os resultados em um único dataframe
+        return pd.concat(results)
+
+    @classmethod
+    def apply_process(cls, df, func, num_processes=None):
+        num_processes = num_processes or cpu_count()
+
+        df_split = cls.split_dataframe(df, num_processes)
+
+        # Criar um pool de processos
+        with Pool(processes=num_processes) as pool:
+            # Aplicar a função em cada parte do dataframe usando o pool de processos
+            results = pool.map(func, df_split)
+
+        # Concatenar os resultados em um único dataframe
+        return pd.concat(results)
+    
+    ### EXEMPLO ##################################################
+    @classmethod
+    def __func_exemplo__(cls, item):
+        item['C'] = item['A'] + item['B']
+        print(f"item {item['A'].item()}")
+        return item
+    
+    @classmethod
+    def exemplo(cls, processos = True):
+        df = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
+        if processos:
+            return cls.apply_process(df, cls.__func_exemplo__)
+        return cls.apply_parallel(df, cls.__func_exemplo__)
+
+#### Pandas Excel ################################################    
 class UtilPandasExcel:
     FORMAT_HEADER = {'bold':  True, 'align': 'left', 'valign': 'top', 'text_wrap': True, 'bg_color': '#CCCCCC'}
     FORMAT_DEFAULT = {'bold':  False, 'align': 'left', 'valign': 'top', 'text_wrap': True}
@@ -184,9 +279,19 @@ class UtilPandasExcel:
 
     def save(self):
         self.writer.save()
-
-
+    
 if __name__ == '__main__':
+    print('Exemplo com processos:') 
+    df = UtilPandas.exemplo(True)
+    print(df)
+    print('=========================================') 
+    print('Exemplo com threads:')
+    df = UtilPandas.exemplo(False)
+    print(df)
+    print('=========================================') 
+
+    print('Exemplo com excel:')
+    
     teste = [{"ano":2000, "quantidade":10, 'linha_grande' : "aka slkjsdlfjasldjf lasdjflsjdflaksjdlkf"},
              {"ano":2001, "quantidade":15, "linha_grande" : "dlsafalskjdf lflak sjdflasldfasldkfjsaldkfjalsdfjlaskjdflkas"},
              {"ano":2000, "quantidade":20, "linha_grande" : "dlsafalskjdf lflak sjdflasldfasldkfjsaldkfjalsdfjlaskjdflkas"}]
@@ -209,4 +314,4 @@ if __name__ == '__main__':
 
 
     tp.save()
-    print(df)
+    print(df)    
