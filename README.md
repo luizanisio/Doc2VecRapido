@@ -105,7 +105,7 @@ Similaridade entre os textos 01 e 03: 98.88%
    from util_doc2vec_rapido import Doc2VecRapido
    dv = Doc2VecRapido(pasta_modelo = 'minha_pasta')
    texto_1 = 'esse é um texto de teste para comparação'
-   vetor = dv.vetor(texto)
+   vetor = dv.vetor(texto_1)
    print(f'Vetor do texto 1: {vetor}')       
 ```    
 - Resultado (300 números do vetor): 
@@ -113,6 +113,110 @@ Similaridade entre os textos 01 e 03: 98.88%
 [0.012920759618282318, -0.04087100550532341, .. 0.00844051968306303, -0.029573174193501472]
 ```
 
+### Treinando o modelo pelo código
+- os parâmetros passados pelas constantes são os obrigatórios
+ ```python 
+   from util_doc2vec_rapido import Doc2VecRapido
+   PASTA_MODELO = './meu_modelo'
+   PASTA_TEXTOS = './meus_textos'
+   EPOCAS = 200
+   dv = Doc2VecRapido(pasta_modelo=PASTA_MODELO, 
+                      documentos=PASTA_TEXTOS, 
+                      epochs=EPOCAS, 
+                      skip_gram = True,
+                      stemmer = False,
+                      strip_numeric = True,
+                      arq_tagged_docs = None,
+                      workers = 30 )
+   dv.treinar()
+   print('Treino concluído')
+   texto_1 = 'esse é um texto de teste para comparação'
+   texto_2 = 'esse é outro texto para comparação'
+   sim = dv.similaridade(texto_1, texto_2)
+   print(f'Similaridade entre os textos: {sim}')       
+```    
+- o parâmetro **arq_tagged_docs** pode ser usado para um conjunto muito grande de documentos que não cabem na memória. 
+  - Você pode criar um arquivo `documentos.json`, por exemplo, e colocar em cada linha uma chave tokens e, opcionalmente, uma chave tags. 
+  - Cada linha deve conter um json válido: {"tokens": ["token1","token2" ....], "tags" : ["tag1","tag2"]}
+  - Os documentos serão iterados em blocos de **bloco_tagged_docs** textos de cada vez para que o treinamento ocorra de forma rápida e com pouca memória.
+  - É necessário que os documentos já estejam processados para tornar o treinamento mais eficiente. 
+  - Abaixo um exemplo de como preparar o arquivo com tokens processados.
+
+### Criando um arquivo de treino gigante com tokens processados
+- você pode pré-processar um volume grande de textos para um treinamento longo e com milhares/milhões de arquivos
+- você pode ter um ou vários dataframes com uma coluna texto e outra de tags (tags é opcional)
+```python
+    from util_doc2vec_rapido import Doc2VecRapido, DocumentosDoArquivo
+    import pandas as pd
+
+    arq1 = './dataframes/arquivo.feather'
+    arq2 = './dataframes/outro_arquivo.json'
+    df1 = pd.read_feather(arq1)
+    df2 = pd.read_json(arq2, lines=True)
+    # nome do arquivo de treino que será gerado
+    arq_saida = './dataframes/textos_para_treino.json'
+    # apaga o arquivo de saída se existir
+    if os.path.isfile(arq_saida):
+        os.remove(arq_saida)
+    # aqui o arquivo config já é criado para o modelo 
+    # na pasta indicada com os parâmetros do tokenizador
+    dv = Doc2VecRapido(pasta_modelo='./meu_modelo', 
+                       strip_numeric=True, 
+                       stemmer=False, 
+                       skip_gram=True)        
+    docs = DocumentosDoArquivo(arq_saida, dv)
+    # aqui os dataframes são processados e inseridos no arquivo de treino    
+    docs.incluir_textos([df1,df2], coluna_texto='texto', coluna_tags='rotulos')    
+    print(f'Arquivo de treino criado: ', arq_saida)```
+
+## Criando um arquivo de treino gigante de uma pasta de documentos
+- a estratégia de rótulos de cada arquivo pode ser definida pelo nome do arquivo, pode ter outro arquivo associado ou deixar sem rótulos
+
+```python
+    from util_doc2vec_rapido import Doc2VecRapido,DocumentosDoArquivo
+    from util_doc2util import UtilDocs
+    tags_aleatorias = ['Rótulo A', 'Rótulo B', 'Rótulo C']
+    textos = UtilDocs.carregar_documentos('./textos_grupos')
+    # aqui o arquivo config já é criado para o modelo 
+    # na pasta indicada com os parâmetros do tokenizador
+    dv = Doc2VecRapido(pasta_modelo='./meu_modelo', 
+                       strip_numeric=True, 
+                       stemmer=False, 
+                       skip_gram=True)        
+    # aqui os textos são processados e inseridos no arquivo de treino
+    arq_saida = './textos/textos_para_treino.json'
+    # apaga o arquivo de saída se existir
+    if os.path.isfile(arq_saida):
+        os.remove(arq_saida)
+    docs = DocumentosDoArquivo(arq_saida, dv)
+    for texto in textos:
+        docs.incluir_texto(texto, tags = [random.choice(tags_aleatorias)])
+    print(f'Arquivo de treino criado: ', arq_saida)
+```
+
+### Treinando com um arquivo de treino pronto e com todos os textos tokenizados
+- o arquivo de treinamento estará pronto para ser usado no treinamento.
+- é necessário passar o objeto dv carregado com a tokenização desejada. Então é interessante ter o arquivo `config.json` na pasta do modelo ou passar os parâmetros de tokenização para que a chamada crie o arquivo config.json, permitindo a mesma configuração de tokenização no treino e nas futuras predições.
+ ```python 
+   from util_doc2vec_rapido import Doc2VecRapido
+   PASTA_MODELO = './meu_modelo'
+   EPOCAS = 50
+   # esse arquivo pode ter milhões de linhas
+   arquivo_treino = './dataframes/textos_para_treino.json'
+   # entendendo que o arquivo config já existe com as informações
+   # da tokenização e bloco_tagged_docs pode ter o valor que caiba na memória
+   dv = Doc2VecRapido(pasta_modelo=PASTA_MODELO, 
+                      arq_tagged_docs= arquivo_treino,
+                      bloco_tagged_docs= 50000,
+                      epochs=EPOCAS,
+                      workers = 30 )
+   dv.treinar()
+   print('Treino concluído')
+   texto_1 = 'esse é um texto de teste para comparação'
+   texto_2 = 'esse é outro texto para comparação'
+   sim = dv.similaridade(texto_1, texto_2)
+   print(f'Similaridade entre os textos: {sim}')       
+```    
 
 ## Dicas de uso: <a name="dicas">
 - gravar os vetores, textos e metadados dos documentos no [`ElasticSearch`](https://www.elastic.co/pt/), e usar os recursos de pesquisas: More Like This, vetoriais e por proximidade de termos como disponibilizado no componente [`PesquisaElasticFacil`](https://github.com/luizanisio/PesquisaElasticFacil) ou criar sua própria estrutura de dados com [`essas dicas`](https://github.com/luizanisio/PesquisaElasticFacil/blob/main/docs/ElasticQueries.md).
