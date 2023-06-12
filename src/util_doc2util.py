@@ -77,6 +77,8 @@ class UtilDocs():
         cls.printlog(msg_log, f'Documentos carregados: {len(documentos)}')
         #documentos, rotulos = list(zip(*documentos))
         #cls.printlog(f'Exemplo de documento: {documentos[0]} e rótulos: {rotulos[0]}')
+        if len(documentos) == 0:
+            return [],[]
         return list(zip(*documentos))
 
     # função simples de carga de arquivos que tenta descobrir o tipo de arquivo (utf8, ascii, latin1)
@@ -108,3 +110,31 @@ class UtilDocs():
                 if file_name.lower().endswith(f"{_extensao}"):
                    res.append(os.path.join(path,file_name))
         return res
+
+    @classmethod    
+    def is_iterable(self, obj):
+        try:
+            iter(obj)
+            return True
+        except TypeError:
+            return False 
+
+    @classmethod
+    def progresso_continuado(self, mensagem_inicial = None, i = None, total = None):
+        '''Usar:
+           progresso_continuado('Iniciando looping')
+           progresso_continuado(i=10, total=100)
+        '''
+        if mensagem_inicial is None and i is None and total is None:
+            return    
+        if mensagem_inicial != None:
+            print(f'{mensagem_inicial}', flush=True)
+        if i is None:
+            return
+        if   total < 500:   salto = 10
+        elif total < 1000:  salto = 100
+        elif total < 10000: salto = 250
+        else: salto = 500
+        if i % salto == 0:
+           print(f'{i}|', end = '', flush=True)   
+        
