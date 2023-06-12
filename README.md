@@ -60,6 +60,9 @@ gtr-t5-xxl` (muito bom para similaridade em PTBR, mas precisa de muita máquina)
    - **max_total_epocas** = número máximo de épocas para treinar (facilita para o caso de desejar completar até um valor treinando parcialmente - padrão 0 = sem limite)
 > :bulb: <sub> Nota: Você pode criar o arquivo `stopwords.txt` e colocar uma lista de palavras que serão excluídas dos textos durante o treinamento. Essas palavras não serão "vistas" pelo modelo na leitura dos textos. Se quiser criar o arquivo de configuração padrão para ajustar antes do treinamento, use o parâmetro `-config` como no exemplo: `python util_doc2vec_rapido.py -pasta ./meu_modelo -config`.</sub>
 
+## Arquivo de dados e exemplos de código
+- alés dos códigos abaixo, foi disponibilizado o arquivo [dados_exemplos.zip](https://github.com/luizanisio/Doc2VecRapido/blob/main/exemplos/dados_exemplos.zip) com textos públicos de exemplo para treinamento e dataframes de exemplo de treinamento. E o arquivo [exemplos.py](https://github.com/luizanisio/Doc2VecRapido/blob/main/src/exemplos.py) com um exemplo para cada cenário de treinamento e preparação de dados.
+
 ### Treinamento do modelo usando a estrutura de tokenização criada 
    - `python util_doc2vec_rapido.py -pasta ./meu_modelo -textos ./textos -epocas 1000`
    - o modelo será gravado a cada 50 iterações para continuação do treino se ocorrer alguma interrupção
