@@ -12,6 +12,9 @@ import hashlib
 
 #####################################
 from multiprocessing.dummy import Pool as ThreadPool
+from concurrent.futures import ThreadPoolExecutor
+import concurrent.futures
+
 class UtilDocs():
     
     @classmethod
@@ -28,12 +31,30 @@ class UtilDocs():
         print('{} {}           '.format(text, msg), end="\n" if percentual == 100 else "")
 
     @classmethod
-    def map_thread(cls, func, lista, n_threads=5):
+    def map_thread(cls, func, lista, n_threads=100):
         # print('Iniciando {} threads'.format(n_threads))
         pool = ThreadPool(n_threads)
         pool.map(func, lista)
         pool.close()
         pool.join()  
+
+    @classmethod
+    def any_with_threads(cls, func, lista, n_threads=100):
+        ''' func vai retornar o valor procurado, interrompendo assim que achar ele
+            caso func retorne None, vai continuar procurando
+            ao final retorna None caso não encontre o valor  '''
+        with concurrent.futures.ThreadPoolExecutor(max_workers=n_threads) as executor:
+            futures = {executor.submit(func, item) for item in lista}
+            for future in concurrent.futures.as_completed(futures):
+                if future.result():
+                   return future.result()
+        return False
+
+    @classmethod
+    def apply_threads(cls, func, lista, n_threads=100):
+        with ThreadPoolExecutor(max_workers=n_threads) as executor:
+            resultados = executor.map(func, lista)
+        return resultados
 
     @classmethod
     def printlog(cls, inicio,msg, retornar_msg_erro=False, destaque = False):

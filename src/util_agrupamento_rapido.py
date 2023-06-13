@@ -235,6 +235,16 @@ class AgrupamentoRapido():
     def vetorizar_textos_dados(self, dados, pasta_modelo):
         if dados is None or len(dados) == 0:
            return
+        # caso exista a chave de vetor para todos os documentos, retora
+        def _busca_(d):
+           if 'vetor' in d and type(d['vetor']) in (list, tuple) and len(d['vetor']) > 0:
+              return False 
+           return d
+        sem_vetor = UtilDocs.any_with_threads(func = _busca_ ,lista = dados)
+        if sem_vetor is None:
+           return
+        # tudo ok, todos possuem vetor
+        
         # se for para vetorizar, carrega o modelo doc2vecrapido ou doc2bertrapido
         modelo = modelo_generico(pasta_modelo) 
 
@@ -539,5 +549,4 @@ if __name__ == "__main__":
                                           arquivo_saida = arquivo_saida,
                                           arquivo_cache = arquivo_cache,
                                           coluna_texto = coluna_texto)
-
 

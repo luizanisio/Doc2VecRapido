@@ -128,7 +128,7 @@ class Doc2BertRapido():
          qtd_grandes, qtd_vazios, qtd_ok = 0, 0, 0
          for i in range(len(dados)):
              UtilDocs.progress_bar(i, qtd,f' vetorizando textos grandes {i+1}/{qtd} textos                ')
-             if 'vetor' in dados[i] and dados[i]['vetor'] is not None:
+             if 'vetor' in dados[i] and type(dados[i]['vetor']) in (list, tuple):
                 # já tem vetor, verifica o hash ou cria um único
                 qtd_ok += 1
                 continue

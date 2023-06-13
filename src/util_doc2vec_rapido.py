@@ -191,7 +191,8 @@ class Doc2VecRapido():
             if self.documentos_carregados > 0:
                self.printlog(f'Pronto para treinar o modelo {self.pasta_modelo} com {self.documentos_carregados} documentos')
             else:
-               self.printlog(f'Aguardando inclusão de documentos para treinar o modelo {self.pasta_modelo}') 
+               if self.model is None:
+                  self.printlog(f'Aguardando inclusão de documentos para treinar o modelo {self.pasta_modelo}') 
         else:
             self.printlog(f'Pronto para treinar o modelo:\n - {self.pasta_modelo} \n - com os TaggedDocs do arquivo {self.arq_tagged_docs}') 
         self.config.gravar_config(self.arquivo_config, self.get_parametros_modelo())
@@ -522,13 +523,13 @@ class Doc2VecRapido():
 
     def vetorizar_dados(self, dados, epocas):
         def _vetorizar(i):
-            if 'vetor' in dados[i] and dados[i]['vetor'] is not None:
+            if 'vetor' in dados[i] and type(dados[i]['vetor']) in (list, tuple):
                return
             texto = dados[i].get('texto', '')
             vetor = self.vetor(texto=texto, epochs=epocas, retornar_tokens = False)
             dados[i]['vetor'] = vetor
             dados[i]['hash'] = UtilDocs.hash(texto) if texto else 'vazio'
-        UtilDocs.map_thread(_vetorizar, lista = range(len(dados)), n_threads=10)     
+        UtilDocs.map_thread(_vetorizar, lista = range(len(dados)), n_threads=100)     
         UtilDocs.progress_bar(1,1,' vetorização Doc2Vec finalizada                                ')
 
 class DocumentosDoArquivo():
