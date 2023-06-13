@@ -1,6 +1,6 @@
 ## Doc2VecRapido, Doc2BertRapido e AgrupamentoRapido
 
-### Vetorização para agrupamento e similaridade semântica com Doc2Ver e BERTimbau
+### Vetorização para agrupamento e similaridade semântica com Doc2Vec, BERTimbau e LLms
 
 Classe em python que simplifica o processo de criação de um modelo `Doc2Vec` [`Gensim 4.0.1`](https://radimrehurek.com/gensim/models/doc2vec.html) sem tantos parâmetros de configuração como o [Doc2VecFacil](/Doc2VecFacil), mas já traz um resultado excelente em vários contextos. Também tem algumas dicas de agrupamento de documentos similares, uso de `ElasticSearch` e `SingleStore`.<br>
 
