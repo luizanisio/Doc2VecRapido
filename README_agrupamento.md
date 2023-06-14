@@ -3,6 +3,7 @@
 - O código abaixo permite o uso do modelo treinado com o [`Doc2VecRapido`](./README.md) ou carregado com o [`Doc2BertRapido`](./README.md) para gerar uma planilha excel com o nome dos arquivos e os grupos formados pela similaridade entre eles, com a possibilidade de plotar os grupos formados.
   
 - [`AgrupamentoRapido`](./src/util_agrupamento_rapido.py)  
+- Arquivo com exemplos de uso do código de agrupamento: [`exemplos_agrupamento.py`](./src/exemplos_agrupamento.py)
 
 > :bulb: <sub>Nota: existem diversas formas de agrupar vetores, como [`HDBScan`](https://hdbscan.readthedocs.io/en/latest/how_hdbscan_works.html), [`DBScan`](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html), [`K-Means`](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html), dentre outros. A forma apresentada aqui é mais uma forma, simples, e que não exige identificar número de grupos e nem extrapola a similaridade por critérios de borda ou continuidade. Mas cada caso é um caso e pode-se aplicar a técnica que melhor resolva o problema.</sub>
 
