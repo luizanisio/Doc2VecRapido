@@ -26,7 +26,7 @@ from gensim.parsing.preprocessing import preprocess_string, strip_tags, strip_pu
 from nltk.stem.snowball import SnowballStemmer
 from copy import deepcopy
 
-from util_doc2util import UtilDocs
+from util_doc2util import UtilDocs, Progresso
 import pandas as pd
 from typing import Union
 from time import time
@@ -521,16 +521,23 @@ class Doc2VecRapido():
             return {}
         return {c:v for c,v in _model.__dict__.items() if c[0] != '_' and type(v) in (str, int, float)}
 
-    def vetorizar_dados(self, dados, epocas):
-        def _vetorizar(i):
+    def vetorizar_dados(self, dados, epocas = 100):
+        print(f'Vetorizando {len(dados)} dados com Doc2Vec')
+        bar = Progresso(total = len(dados))
+        restam = [len(dados)]
+        def __vetorizar__(i):
+            restam[0] -= 1
+            bar.restantes(restam[0]) 
             if 'vetor' in dados[i] and type(dados[i]['vetor']) in (list, tuple):
                return
             texto = dados[i].get('texto', '')
             vetor = self.vetor(texto=texto, epochs=epocas, retornar_tokens = False)
             dados[i]['vetor'] = vetor
             dados[i]['hash'] = UtilDocs.hash(texto) if texto else 'vazio'
-        UtilDocs.map_thread(_vetorizar, lista = range(len(dados)), n_threads=100)     
-        UtilDocs.progress_bar(1,1,' vetorização Doc2Vec finalizada                                ')
+        UtilDocs.map_thread(__vetorizar__, lista = range(len(dados)), n_threads=20)    
+        bar.restantes(0) 
+        bar.close()
+        #UtilDocs.progress_bar(1,1,' vetorização Doc2Vec finalizada                                ')
 
 class DocumentosDoArquivo():
     '''recebe o nome de um arquivo json contendo os documentos de treinamento.

@@ -14,8 +14,10 @@ import hashlib
 from multiprocessing.dummy import Pool as ThreadPool
 from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
+from tqdm import tqdm
 
 class UtilDocs():
+    N_THREADS_PADRAO = 1000
     
     @classmethod
     def hash(cls, texto):
@@ -31,15 +33,22 @@ class UtilDocs():
         print('{} {}           '.format(text, msg), end="\n" if percentual == 100 else "")
 
     @classmethod
-    def map_thread(cls, func, lista, n_threads=100):
+    def map_thread(cls, func, lista, n_threads=N_THREADS_PADRAO, tdqm_progress = True):
         # print('Iniciando {} threads'.format(n_threads))
+        _qtd = [len(lista)]
+        def __func_progress__(v):
+            _qtd[0] -= 1
+            func(v)
         pool = ThreadPool(n_threads)
-        pool.map(func, lista)
+        if tdqm_progress:
+           pool.map(__func_progress__, lista)
+        else:
+           pool.map(func, lista)
         pool.close()
         pool.join()  
 
     @classmethod
-    def any_with_threads(cls, func, lista, n_threads=100):
+    def any_with_threads(cls, func, lista, n_threads=N_THREADS_PADRAO):
         ''' func vai retornar o valor procurado, interrompendo assim que achar ele
             caso func retorne None, vai continuar procurando
             ao final retorna None caso não encontre o valor  '''
@@ -51,7 +60,7 @@ class UtilDocs():
         return False
 
     @classmethod
-    def apply_threads(cls, func, lista, n_threads=100):
+    def apply_threads(cls, func, lista, n_threads=N_THREADS_PADRAO):
         with ThreadPoolExecutor(max_workers=n_threads) as executor:
             resultados = executor.map(func, lista)
         return resultados
@@ -158,4 +167,20 @@ class UtilDocs():
         else: salto = 500
         if i % salto == 0:
            print(f'{i}|', end = '', flush=True)   
+
+
+class Progresso():
+    def __init__(self, total):
+        self.num_itens_total = total
+        self.pbar = tqdm(total=self.num_itens_total)
+    
+    def update(self, n=1):
+        self.pbar.update(n)
+        
+    def restantes(self, n):
+        num_itens_processados = self.num_itens_total - n
+        self.pbar.update(num_itens_processados - self.pbar.n)            
+        
+    def close(self):
+        self.pbar.close()
         

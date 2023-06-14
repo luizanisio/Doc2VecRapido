@@ -12,7 +12,7 @@
 #######################################################################
 
 from sentence_transformers import SentenceTransformer
-from util_doc2util import UtilDocs
+from util_doc2util import UtilDocs, Progresso
 from scipy.spatial import distance
 import numpy as np
 import re
@@ -124,14 +124,21 @@ class Doc2BertRapido():
          _textos = []
          # verifica dados que não possuem vetor (pode ter vindo do cache ou trazidos da base de dados)
          self.printlog('Analisando textos grandes e dados já vetorizados')
-         qtd = len(dados)
-         qtd_grandes, qtd_vazios, qtd_ok = 0, 0, 0
-         for i in range(len(dados)):
-             UtilDocs.progress_bar(i, qtd,f' vetorizando textos grandes {i+1}/{qtd} textos                ')
+         #qtd = len(dados)
+         qtd_grandes, qtd_vazios, qtd_ok = [0], [0], [0]
+         print(f'Vetorizando {len(dados)} dados com Doc2Bert')
+         print('Vetorizando textos longos...')
+         bar = Progresso(total = len(dados))
+         restam = [len(dados)]
+         #for i in range(len(dados)):
+         def __vetorizar__(i):
+             #UtilDocs.progress_bar(i, qtd,f' vetorizando textos grandes {i+1}/{qtd} textos                ')
+             restam[0] -= 1
+             bar.restantes(restam[0])
              if 'vetor' in dados[i] and type(dados[i]['vetor']) in (list, tuple):
                 # já tem vetor, verifica o hash ou cria um único
-                qtd_ok += 1
-                continue
+                qtd_ok[0] += 1
+                return
              
              _texto = dados[i].get('texto','')
              # sem texto
@@ -139,28 +146,29 @@ class Doc2BertRapido():
                 dados[i]['texto'] = ''
                 dados[i]['hash'] = 'vazio'
                 dados[i]['vetor'] = None
-                qtd_vazios += 1
-                continue
+                qtd_vazios[0] += 1
+                return 
              # textos grandes, tem que vetorizar o batch para cada texto com seus pedacos
              if len(_texto) > self.limite_caracteres_modelo:
-                vetor = self.vetor_texto_grande(_texto, retornar_tokens=False)
+                vetor = self.vetor_texto_grande(_texto, retornar_float=True, retornar_tokens=False)
                 dados[i]['vetor'] = vetor
                 dados[i]['hash'] = dados[i].get('hash', UtilDocs.hash(_texto))
-                qtd_grandes += 1
-                continue
+                qtd_grandes[0] += 1
+                return
              # pilha de vetorização 
              _pos.append(i)
              _textos.append(dados[i].get('texto',''))
-             
-         UtilDocs.progress_bar(1,1,' Concluído                                            ')
-         self.printlog(f'Vetorizados {qtd_grandes} textos grandes, {qtd_vazios} documentos estão vazios e {qtd_ok} já possuem vetores                   ')
-         self.printlog(f'Vetorizando {len(_textos)} textos pequenos em batchs')
+         UtilDocs.map_thread(__vetorizar__, range(len(dados)), n_threads=100, tdqm_progress=True)    
+         #UtilDocs.progress_bar(1,1,' Concluído   
+         bar.restantes(0)
+         bar.close()
+         self.printlog(f'Vetorizados {qtd_grandes[0]} textos grandes, {qtd_vazios[0]} documentos estão vazios e {qtd_ok[0]} já possuem vetores                   ')
+         self.printlog(f'Vetorizando {len(_textos)} textos pequenos')
          vetores = self.vetores(_textos, normalizar=True, retornar_float=True, retornar_tokens=False)
          self.printlog('Consolidadno vetorização ...')
          for i, pos in enumerate(_pos):
                dados[pos]['vetor'] = vetores[i]
                dados[pos]['hash'] = UtilDocs.hash(_textos[i])
-         self.printlog('Vetorização bert finalizada')
 
       RE_QUEBRA_GRANDES = re.compile('[^!?。.？！]+[!?。.？！]?')
       RE_QUEBRA_PEQUENAS = re.compile('[^,;]+[,;]?')

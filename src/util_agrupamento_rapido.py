@@ -21,6 +21,8 @@ from matplotlib import pyplot as plt
 from collections import Counter
 from sklearn.manifold import TSNE
 from util_pandas import UtilPandasExcel
+from time import time
+from tqdm import tqdm
 
 CST_TAMANHO_COLUNA_TEXTO = 250
 
@@ -133,6 +135,7 @@ class AgrupamentoRapido():
         return ( 1-spatial.distance.cdist(lst_vetores, _v, self.distancia).reshape(-1) )  
   
     def grupos_vetores(self):
+        # retorna os grupos e vetores dos centróides
         grupos = self.dados[self.dados.centroide == 1]
         vetores = list(grupos['vetor_np'])
         grupos = list(grupos['grupo'])
@@ -140,7 +143,8 @@ class AgrupamentoRapido():
   
     def melhor_grupo(self, vetor):
       # busca os grupos e vetores dos centróides
-      grupos, vetores = self.grupos_vetores()
+      # grupos, vetores = self.grupos_vetores()
+      grupos, vetores = self.__centroides_grupos__ , self.__centroides_vetores__
       # retorna -1 se não existirem centróides
       if (not vetores):
           return -1, 0
@@ -156,11 +160,14 @@ class AgrupamentoRapido():
       return grupo, int(sim)
   
     def agrupar(self, primeiro=True):
+      self.__centroides_grupos__ , self.__centroides_vetores__ = self.grupos_vetores()
       grupos = self.dados['grupo']
       centroides = self.dados['centroide']
+      ini = time()
       passo = 'Criando centróides' if primeiro else 'Reorganizando similares'
-      for i, (g,c) in enumerate(zip(grupos,centroides)):
-          UtilDocs.progress_bar(i+1,len(grupos),f'{passo}')
+      print(passo)
+      for i, (g,c) in tqdm(enumerate(zip(grupos,centroides)), total = len(centroides)):
+          #UtilDocs.progress_bar(i+1,len(grupos),f'{passo}')
           if g==-1 or c==0:
             v = self.dados.iloc[i]['vetor_np']
             # identifica o melhor centróide para o vetor
@@ -174,6 +181,13 @@ class AgrupamentoRapido():
               self.dados.at[i,'grupo'] = g
               self.dados.at[i,'similaridade'] = 100
               self.dados.at[i,'centroide'] = 1
+              # guarda na lista de centróides para acelerar as pesquisas
+              self.__centroides_grupos__.append(g)
+              self.__centroides_vetores__.append(v)
+      if primeiro:
+         print(f'Tempo para criação dos centroides: {time()-ini}s')
+      else:
+         print(f'Tempo para reorganização dos centroides: {time()-ini}s')
       if primeiro:
          # um segundo passo é feito para corrigir o centróide de quem ficou ente um grupo e outro
          # buscando o melhor dos centróides dos grupos que poderia pertencer
@@ -342,9 +356,10 @@ class AgrupamentoRapido():
          tp.write_df(_dados, sheet_name=_nome_plan,auto_width_colums_list=True, columns_titles=colunas)
          # identificando a linha seguinte ao fim dos grupos
          _grupos = list(_dados['grupo'])
-         _linha_orfao = _grupos.index(-1)
-         _grupos = list(_dados['grupo'])
-         _linha_orfao = _grupos.index(-1)
+         try:
+            _linha_orfao = _grupos.index(-1)
+         except ValueError:
+            _linha_orfao = -1
          _linha_orfao = len(_dados) if _linha_orfao <0 else _linha_orfao
          # colorindo o número dos grupos por par e ímpar
          str_cells = tp.range_cols(first_col=0, last_col=1, first_row=1, last_row=_linha_orfao +1)
@@ -352,8 +367,9 @@ class AgrupamentoRapido():
          str_cells = tp.range_cols(first_col=3, last_col=len(colunas)-1,first_row=1, last_row=_linha_orfao +1)
          tp.conditional_value_color(sheet_name = _nome_plan, cells=str_cells, valor =  '=MOD($B1, 2)=0', cor = tp.COR_AZUL_CLARO)
          # sem grupo
-         str_cells = tp.range_cols(first_col=0, last_col=len(colunas)-1,first_row=_linha_orfao+2, last_row=len(_dados)+1)
-         tp.conditional_value_color(sheet_name = _nome_plan, cells=str_cells, valor =  '1=1', cor = tp.COR_CINZA)
+         if _linha_orfao < len(_dados) : 
+            str_cells = tp.range_cols(first_col=0, last_col=len(colunas)-1,first_row=_linha_orfao+2, last_row=len(_dados)+1)
+            tp.conditional_value_color(sheet_name = _nome_plan, cells=str_cells, valor =  '1=1', cor = tp.COR_CINZA)
          # idêntico
          str_cells = tp.range_cols(first_col=3, last_col=3,first_row=1, last_row=_linha_orfao +1)
          tp.conditional_value_color(sheet_name = _nome_plan, cells=str_cells, valor =  'D1="Sim"', cor = tp.FONTE_VERDE)
