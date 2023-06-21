@@ -14,10 +14,11 @@ import hashlib
 from multiprocessing.dummy import Pool as ThreadPool
 from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
+from multiprocessing import cpu_count
 from tqdm import tqdm
 
 class UtilDocs():
-    N_THREADS_PADRAO = 1000
+    N_THREADS_PADRAO = cpu_count() * 3
     
     @classmethod
     def hash(cls, texto):

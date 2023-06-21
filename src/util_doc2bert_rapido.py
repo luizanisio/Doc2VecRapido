@@ -41,7 +41,8 @@ class Doc2BertRapido():
                self.modelo = 'neuralmind/bert-base-portuguese-cased'
             self.nome_modelo = 'BERTimbau-base'
          else:
-            self.printlog(f'carregnado modelo remoto "{modelo}"')
+            if not os.path.isdir(str(modelo)):
+               self.printlog(f'carregnado modelo remoto "{modelo}"')
             self.modelo = modelo 
             self.nome_modelo = modelo
 
@@ -158,7 +159,7 @@ class Doc2BertRapido():
              # pilha de vetorização 
              _pos.append(i)
              _textos.append(dados[i].get('texto',''))
-         UtilDocs.map_thread(__vetorizar__, range(len(dados)), n_threads=100, tdqm_progress=True)    
+         UtilDocs.map_thread(__vetorizar__, range(len(dados)), n_threads=UtilDocs.N_THREADS_PADRAO, tdqm_progress=True)    
          #UtilDocs.progress_bar(1,1,' Concluído   
          bar.restantes(0)
          bar.close()
