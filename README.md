@@ -71,8 +71,13 @@ gtr-t5-xxl` (muito bom para similaridade em PTBR, mas precisa de muita máquina)
      - `vocab_treinado.txt` com os termos treinados 
      - `vocab_similares.txt` com alguns termos e os termos mais similares a eles.
 
+### Finetunning de uma LLM (Bert, LongBert, T5)
+- python util_treinallm_rapido.py -pasta ./meut5br -base t5br -textos ./textos_sim -epocas 5
+> :bulb: <sub> Nota: Finalizando os testes e disponibilizo em breve.</sub>
+
 ### Testando o modelo (vai carregar o modelo e comparar alguns textos internos)
   - `python util_doc2vec_rapido.py -pasta ./meu_modelo`
+  - `python util_doc2llm_rapido.py -pasta T5BR`
 
 Resultado: 
 ```
