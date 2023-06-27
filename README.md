@@ -96,7 +96,7 @@ Similaridade entre os textos 01 e 02: 86.25%
 Similaridade entre os textos 01 e 03: 98.88%
 ```
 
-### Carregando o modelo para comparação
+### Carregando o modelo Doc2Vec para comparação
  ```python 
    from util_doc2vec_rapido import Doc2VecRapido
    dv = Doc2VecRapido(pasta_modelo = 'minha_pasta')
@@ -107,6 +107,31 @@ Similaridade entre os textos 01 e 03: 98.88%
 ```    
 
 - Resultado: `Similaridade texto 1 e 2: 83.25%`
+
+### Carregando um modelo Transformers para comparação
+- alguns mapeados com constantes:
+  - `T5BR` = 'tgsc/sentence-transformer-ult5-pt-small' ( 200Mb 1024 tokens entrada - 512 dimensões de saída - 51Mi param)
+  - `GTRT5XXL` = 'sentence-transformers/gtr-t5-xxl' ( *treinado similaridade semântica* - 9.1 Gb - 512 tokens entrada - 768 dimensões de saída - 11Bi param)
+  - `BERT` ou `BERT_LARGE` = 'neuralmind/bert-large-portuguese-cased' (2.5 Gb 512 tokens entrada - 1024 dimensões de saída - 334Mi param)
+  - `BERT_BASE` = 'neuralmind/bert-base-portuguese-cased' (1.3 Gb 512 tokens entrada - 768 dimensões de saída - 109Mi param)
+  - `BERT_4K` = 'allenai/longformer-base-4096' (600Mb 4096 tokens e entrada - 768 dimensões de saída - 148Mi param)
+  - outros no código (classe Doc2LLMRapido)
+  - Opções para carregar:
+    - dv = Doc2LLMRapido(modelo = 'meut5br') # busca a pasta 'meut5br'
+    - dv = Doc2LLMRapido(modelo = 'T5BR')  # busca pela constante T5BR
+    - dv = Doc2LLMRapido(modelo = Doc2LLMRapido.T5BR)  # busca pela constante T5BR
+    - dv = Doc2LLMRapido(modelo = Doc2LLMRapido.BERT)  # busca pela constante BERT = Bert Large
+
+ ```python 
+   from util_doc2llm_rapido import Doc2LLMRapido
+   dv = Doc2LLMRapido(modelo = 'meut5br')
+   texto_1 = 'esse é um texto de teste para comparação'
+   texto_2 = 'esse outro texto de teste para uma nova comparação'
+   sim = 100 * dv.similaridade(texto_1, texto_2)
+   print(f'Similaridade texto 1 e 2: {sim:.2f}')       
+```    
+
+- Resultado: `Similaridade texto 1 e 2: 85.32%`
 
 ### Mostrando o vetor do texto
  ```python 
