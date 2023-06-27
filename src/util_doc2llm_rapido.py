@@ -49,6 +49,7 @@ class Doc2LLMRapido():
     
     # BERT 4k - ocorre erro de cálculo de tokens pois considera 4098 tokens no encode 
     # - é necessário corrigir o arquivo sentence_bert_config.json para 4096 tokens
+    # 600Mb 4096 tokens e entrada - 768 dimensões de saída - 148Mi param
     BERT_4K = 'allenai/longformer-base-4096'
 
     # estratégia de vetorização de textos longos
