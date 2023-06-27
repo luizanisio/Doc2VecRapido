@@ -92,12 +92,12 @@ class Doc2LLMRapido():
       if not _modelo:
          # vai baixar do repositório remoto
          if path:
-            os.makedirs(path, exist_ok=True)
+            if path: os.makedirs(path, exist_ok=True)
             self.printlog(f'Baixando o modelo para "{path}": {modelo_busca}')   
             #self.model = SentenceTransformer(modelo, cache_folder=path, warnings=self.warnings)
             self.nome_modelo = modelo_busca
          else:
-            os.makedirs(path, exist_ok=True)
+            if path: os.makedirs(path, exist_ok=True)
             self.printlog(f'Baixando o modelo: {modelo_busca}')   
             #self.model = SentenceTransformer(modelo, warnings=self.warnings)
             self.nome_modelo = modelo_busca
