@@ -110,11 +110,16 @@ Similaridade entre os textos 01 e 03: 98.88%
 
 ### Carregando um modelo Transformers para comparação
 - alguns mapeados com constantes:
-  - `T5BR` = 'tgsc/sentence-transformer-ult5-pt-small' ( 200Mb 1024 tokens entrada - 512 dimensões de saída - 51Mi param)
-  - `GTRT5XXL` = 'sentence-transformers/gtr-t5-xxl' ( *treinado similaridade semântica* - 9.1 Gb - 512 tokens entrada - 768 dimensões de saída - 11Bi param)
-  - `BERT` ou `BERT_LARGE` = 'neuralmind/bert-large-portuguese-cased' (2.5 Gb 512 tokens entrada - 1024 dimensões de saída - 334Mi param)
-  - `BERT_BASE` = 'neuralmind/bert-base-portuguese-cased' (1.3 Gb 512 tokens entrada - 768 dimensões de saída - 109Mi param)
-  - `BERT_4K` = 'allenai/longformer-base-4096' (600Mb 4096 tokens e entrada - 768 dimensões de saída - 148Mi param)
+  - `T5BR` = 'tgsc/sentence-transformer-ult5-pt-small'
+    - <sub>200Mb 1024 tokens entrada - 512 dimensões de saída - 51Mi param</sub>
+  - `GTRT5XXL` = 'sentence-transformers/gtr-t5-xxl'
+    - <sub>*treinado similaridade semântica* - 9.1 Gb - 512 tokens entrada - 768 dimensões de saída - 11Bi param</sub>
+  - `BERT` ou `BERT_LARGE` = 'neuralmind/bert-large-portuguese-cased'
+    - <sub>2.5 Gb 512 tokens entrada - 1024 dimensões de saída - 334Mi param</sub>
+  - `BERT_BASE` = 'neuralmind/bert-base-portuguese-cased'
+    - <sub>1.3 Gb 512 tokens entrada - 768 dimensões de saída - 109Mi param</sub>
+  - `BERT_4K` = 'allenai/longformer-base-4096'
+    - <sub>600Mb 4096 tokens e entrada - 768 dimensões de saída - 148Mi param</sub>
   - outros no código (classe Doc2LLMRapido)
   - Opções para carregar:
     - dv = Doc2LLMRapido(modelo = 'meut5br') # busca a pasta 'meut5br'
