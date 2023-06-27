@@ -1,0 +1,36 @@
+###########################################################################################
+ATENÇÃO: a versão do gensim é diferente na classe do athos e nos testes do Doc2VecRapido
+###########################################################################################
+- github: https://github.com/luizanisio/Doc2VecRapido
+- config: https://github.com/luizanisio/Doc2VecRapido#voc%C3%AA-pode-configurar-alguns-par%C3%A2metros-antes-do-treinamento-para-o-doc2vecrapido
+
+Criar config para ajustes antes de treinar o modelo (opcional)
+- python util_doc2vec_rapido.py -pasta ./meu_modelo -config
+
+Treinando um modelo simples com Doc2Vec:
+- python util_doc2vec_rapido.py -pasta ./meu_modelo -textos ./textos_grupos -epocas 100
+
+Fine Tunning de um modelo T5BR:
+- python util_treinallm_rapido.py -pasta ./meut5br -base t5br -textos ./textos_sim -epocas 5
+
+Agrupamento
+- python util_agrupamento_rapido.py -modelo meu_modelo -textos textos_grupos -texto -plotar -saida meu_modelo
+
+- python util_agrupamento_rapido.py -modelo meu_modelo -textos textos_grupos -texto -plotar -sim 80
+
+- python util_agrupamento_rapido.py -modelo T5BR -textos textos_grupos -texto -plotar -sim 90 -saida t5br
+
+- python util_agrupamento_rapido.py -modelo BERT -textos textos_grupos -texto -plotar -sim 90 -saida bert
+
+- python util_agrupamento_rapido.py -modelo athos_v2 -textos textos_grupos -texto -plotar -sim 85 -saida athos_v2
+
+- python util_agrupamento_rapido.py -modelo athos_v2e -textos textos_grupos -texto -plotar -sim 85 -saida athos_v2e
+
+- python util_agrupamento_rapido.py -modelo athos_v2_4k -textos textos_grupos -texto -plotar -sim 85 -saida athos_v2_4k
+
+=----------------------------------------------------------------------------=
+PS: Modelos como o Bert, Bertimbau, LongBert e T5br (sentence-transformer-ult5-pt-small) 
+    precisam de Fine Tunning para similaridade, não darão um bom resultado sem treinamento.
+    O Modelo GTRT5XXL (sentence-transformers/gtr-t5-xxl) já está treinado com a similaridade, mas é bem pesado. Sugiro com uso de GPU.
+    O modelo BERT_4K (allenai/longformer-base-4096) tem um erro na contagem máxima de tokens, sendo necessário corrigir o arquivo sentence_bert_config.json para 4096 tokens
+    O modelo sentence-transformer-ult5-pt-small tem demonstrado bons resultados no finetunning e tem 1024 tokens de contexto.

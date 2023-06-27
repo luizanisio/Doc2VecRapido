@@ -7,5 +7,6 @@ sentencepiece==0.1.97
 
 pandas
 xlsxwriter
+tdqm
 
-unidecode
+regex

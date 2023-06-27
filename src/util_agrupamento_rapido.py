@@ -23,6 +23,7 @@ from sklearn.manifold import TSNE
 from util_pandas import UtilPandasExcel
 from time import time
 from tqdm import tqdm
+import warnings
 
 CST_TAMANHO_COLUNA_TEXTO = 250
 
@@ -48,23 +49,23 @@ CST_TAMANHO_COLUNA_TEXTO = 250
   print(grupos.dados)
 '''
 def modelo_generico(modelo = '', testar = False):
-    arq_bert = os.path.join(modelo, 'pytorch_model.bin')
-    if  modelo in ('bert','bert-large','bert-base','bert_large','bert_base') or os.path.isfile(arq_bert):
+    arq_llm = os.path.join(modelo, 'pytorch_model.bin')
+    if os.path.isfile(arq_llm):
        if testar: return True
-       from util_doc2bert_rapido import Doc2BertRapido
-       return Doc2BertRapido(modelo)
+       from util_doc2llm_rapido import Doc2LLMRapido
+       return Doc2LLMRapido(modelo)
     # vazio é considerado o "meu_modelo"
     if (not modelo) or os.path.isdir(modelo):
        if testar: return True
        from util_doc2vec_rapido import Doc2VecRapido
        return Doc2VecRapido(modelo)
-    # não é pasta local ou de rede, busca o modelo bert remoto  
+    # não é pasta local ou de rede, busca o modelo da LLM remoto  
     if modelo.find('.') < 0 and modelo.find(':') < 0 \
        and modelo.find('//') < 0 and modelo.find('\\') < 0:
        if testar: return True 
-       from util_doc2bert_rapido import Doc2BertRapido
-       return Doc2BertRapido(modelo)
-    msg = f'Não foi possível identificar um modelo Doc2VecRapido ou Bert local ou remoto, use o nome da pasta ou bert-large ou bert-base'  
+       from util_doc2llm_rapido import Doc2LLMRapido
+       return Doc2LLMRapido(modelo)
+    msg = f'Não foi possível identificar um modelo Doc2VecRapido, Bert ou LLM local ou remoto pelo parâmetro modelo="{modelo}", use o nome da pasta, nome do modelo remoto ou uma das constantes'  
     raise Exception(msg)  
 
 class AgrupamentoRapido():
@@ -259,7 +260,7 @@ class AgrupamentoRapido():
            return
         # tudo ok, todos possuem vetor
         
-        # se for para vetorizar, carrega o modelo doc2vecrapido ou doc2bertrapido
+        # se for para vetorizar, carrega o modelo doc2vecrapido ou doc2llmrapido
         modelo = modelo_generico(pasta_modelo) 
 
         # não existindo arquivo de cache de vetores, faz todo o looping de vetorização
@@ -292,8 +293,10 @@ class AgrupamentoRapido():
          # verifica se tem 2 dimensões
          if len(self.dados['vetor'][0]) >2:
             self.printlog(f'Reduzindo dimensões para plotagem de {len(self.dados["vetor"][0])}d para 2d')
+            warnings.filterwarnings("ignore") 
             tsne_model = TSNE(n_components=2, init='pca', method='exact', n_iter=1000)
             vetores_2d = tsne_model.fit_transform(list(self.dados['vetor_np']) )
+            warnings.filterwarnings("default") 
             x,y = zip(*vetores_2d)
          else:
             x,y = zip(*self.dados['vetor_np'])

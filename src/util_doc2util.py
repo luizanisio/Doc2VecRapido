@@ -16,6 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
 from multiprocessing import cpu_count
 from tqdm import tqdm
+import regex as re
 
 class UtilDocs():
     N_THREADS_PADRAO = cpu_count() * 3
@@ -169,8 +170,130 @@ class UtilDocs():
         if i % salto == 0:
            print(f'{i}|', end = '', flush=True)   
 
+    SEPARADORES = ['\n','\r', '.', '?', '!', ';', ',', ':', ' '] 
+    RE_QUEBRA_LINHAS = re.compile(r'[^\n\r]+')
+
+    
+    @classmethod
+    def quebrar_linhas(cls, texto, id_doc = ''):
+        chunks = []
+
+        for chunk in cls.RE_QUEBRA_LINHAS.finditer(texto):
+            start = chunk.start()
+            end = chunk.end()
+            match_text = chunk.group()
+            chunks.append({
+                'inicio': start,
+                'fim': end,
+                'tamanho': end - start,
+                'trecho': match_text,
+                'id_doc': id_doc
+            })
+
+        return chunks        
+    
+    @classmethod
+    def quebrar_pedacos(cls, texto, tamanho=500, sobreposicao=100, tolerancia=50, id_doc = '', incluir_trecho = False):
+        # prepara as quebras
+        chunks = []
+        start = 0
+        end = tamanho
+        sobreposicao = sobreposicao if sobreposicao < tamanho else sobreposicao-1
+        if len(texto) <= tamanho + tolerancia:
+            return []
+
+        while start < len(texto):
+            # não tem o que fazer, o restante do texto é menor que o chunck + tolerancia
+            if end + tolerancia >= len(texto):
+                #print(f'--- Chegou ao final pela a tolerancia: start:end={start}:{end} tolerancia={tolerancia} len = {len(texto)} "{texto[start:end]}"',)
+                end = len(texto)
+                dict_chunk = {'inicio': start, 'fim': end, 'tamanho': end-start, 'id_doc': id_doc}
+                dict_chunk['trecho'] = texto[start:end] if incluir_trecho else None
+                chunks.append(dict_chunk)
+                break
+
+            if tolerancia > 0:
+               for separador in cls.SEPARADORES:
+                   #print(f'--- Buscando separador no final "{separador}" => "{texto[start:end]}"')
+                   _ok = False
+                   for i in range(tolerancia):
+                       if texto[end+i-1] == separador:
+                           end = end+i-1
+                           _ok = True 
+                           break
+                   if _ok:
+                       #print(f'--- Separador final encontrado "{separador}" => "{texto[start:end]}"')
+                       break  
+
+            dict_chunk = {'inicio': start, 'fim': end, 'tamanho': end-start, 'id_doc': id_doc}
+            dict_chunk['trecho'] = texto[start:end] if incluir_trecho else None
+            chunks.append(dict_chunk)
+
+            # próximo chunck
+            if end >= len(texto):
+               # não precisa de overlap, pois chegou no final
+               #print('--- Chegou no final - ignorando overlap') 
+               break
+            start = end - sobreposicao
+            end = start + tamanho
+            # verifica se pode ajustar o início para os separadores conhecidos dentro do overlap de caracteres
+            if sobreposicao > 0:
+               for separador in cls.SEPARADORES:
+                   # print(f'--- Buscando separador no início "{separador}" => "{texto[start:end]}"')
+                   _ok = False
+                   for i in range(sobreposicao):
+                       if texto[start + i -1] == separador:
+                          start += i
+                          end = start + tamanho
+                          _ok = True 
+                          break
+                   if _ok:
+                      #print(f'--- Separador inicial encontrado "{separador}" => "{texto[start:end]}"')
+                      break  
+        return chunks
+
+
+    @classmethod
+    def unir_paragrafos_ocr(self, texto):
+        lista = texto if type(texto) is list else texto.split('\n')
+        res = []
+        def _final_pontuacao(_t):
+            if len(_t.strip()) == 0:
+                return False
+            return _t.strip()[-1] in PONTUACAO_FINAL_LISTA
+        for i, linha in enumerate(lista):
+            # print('linha {}: |{}| '.format(i,linha.strip()), _final_pontuacao(linha), )
+            if (i>0) and (not _final_pontuacao(lista[i-1])) or \
+                (_final_pontuacao(lista[i-1]) and (ABREVIACOES_RGX.search(lista[i-1]))):
+                # print('juntar: ', lista[i-1].strip(), linha.strip())
+                if len(res) ==0: res =['']
+                res[len(res)-1] = res[-1].strip() + ' '+ linha
+            else:
+                res.append(linha)
+        return '\n'.join(res)
+
+    @classmethod
+    def testar(cls):
+        texto = 'linha 1\nlinha2\n\noutra linha\nlinha final'
+        print(cls.quebrar_linhas(texto))
+
+#############################################################
+# para a correção de quebras de texto, principalmente de extração de PDFs
+ABREVIACOES = ['sra?s?', 'exm[ao]s?', 'ns?', 'nos?', 'doc', 'ac', 'publ', 'ex', 'lv', 'vlr?', 'vls?',
+               'exmo\(a\)', 'ilmo\(a\)', 'av', 'of', 'min', 'livr?', 'co?ls?', 'univ', 'resp', 'cli', 'lb',
+               'dra?s?', '[a-z]+r\(as?\)', 'ed', 'pa?g', 'cod', 'prof', 'op', 'plan', 'edf?', 'func', 'ch',
+               'arts?', 'artigs?', 'artg', 'pars?', 'rel', 'tel', 'res', '[a-z]', 'vls?', 'gab', 'bel',
+               'ilm[oa]', 'parc', 'proc', 'adv', 'vols?', 'cels?', 'pp', 'ex[ao]', 'eg', 'pl', 'ref',
+               '[0-9]+', 'reg', 'f[ilí]s?', 'inc', 'par', 'alin', 'fts', 'publ?', 'ex', 'v. em', 'v.rev',
+               'des', 'des\(a\)', 'desemb']
+ABREVIACOES_RGX = re.compile(r'(?:{})\.\s*$'.format('|\s'.join(ABREVIACOES)), re.IGNORECASE)
+PONTUACAO_FINAL_LISTA = {'.','?','!'}
+#############################################################
+
 
 class Progresso():
+    '''Progresso com tqdm para usar em threads quando 
+       se sabe apenas quantos faltam para acabar'''
     def __init__(self, total):
         self.num_itens_total = total
         self.pbar = tqdm(total=self.num_itens_total)
