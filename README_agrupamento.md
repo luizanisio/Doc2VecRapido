@@ -1,6 +1,6 @@
 # Dicas de uma forma rápida para agrupar os documentos vetorizados
 - Com vetores que possibilitam a comparação de similaridade de documentos, pode-se agrupar por similaridade um conjunto de arquivos, por exemplo.
-- O código abaixo permite o uso do modelo treinado com o [`Doc2VecRapido`](./README.md) ou carregado com o [`Doc2BertRapido`](./README.md) para gerar uma planilha excel com o nome dos arquivos e os grupos formados pela similaridade entre eles, com a possibilidade de plotar os grupos formados.
+- O código abaixo permite o uso do modelo treinado com o [`Doc2VecRapido`](./README.md) ou carregado com o [`Doc2LLMRapido`](./README.md) para gerar uma planilha excel com o nome dos arquivos e os grupos formados pela similaridade entre eles, com a possibilidade de plotar os grupos formados.
   
 - [`AgrupamentoRapido`](./src/util_agrupamento_rapido.py)  
 - Arquivo com exemplos de uso do código de agrupamento: [`exemplos_agrupamento.py`](./src/exemplos_agrupamento.py)
@@ -14,7 +14,7 @@
   - `python util_agrupamento_rapido.py -modelo meu_modelo -textos meus_documentos -sim 80`
 
 - os parâmetros de `util_agrupamento_rapido.py` são:
-  - `-modelo` é a pasta do modelo treinado contendo o arquivo `doc2vecrapido.d2v`
+  - `-modelo` é a pasta do modelo treinado contendo o arquivo `doc2vecrapido.d2v` ou a pasta da LLM com finetunning ou para carregamento remoto.
   - `-textos` é a pasta contendo os arquivos `.txt` que serão agrupados (se omitido, será procurada a pasta `./textos`)
   - `-sim` é a similaridade mínima para que um ou mais arquivos sejam agrupados, se não informado será usada a similaridade 90%
   - `-epocas` é a quantidade de épocas para a inferência do vetor de cada arquivo, se não informado será inferido com `100` épocas.
