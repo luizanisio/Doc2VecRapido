@@ -49,13 +49,17 @@ def agrupar_arquivo_com_vetores():
                              arquivo_saida_excel = arquivo_saida)
 
 def criar_vetorizados():
+    arq_saida = './vetorizados/parag_legislacoes.json'
+    if os.path.isfile(arq_saida):
+       print(f'Arquivo "{arq_saida}" já existe com documentos vetorizados!')
+       return
+
     textos_tags = carregar_paragrafos('./textos_legislacoes', 100)
     print(f'Vetorizando {len(textos_tags)} parágrafos das legislações')
     #textos_tags = textos_tags[:100]
     docs = [{'texto': texto} for texto, _ in textos_tags]
     dv = Doc2VecRapido(pasta_modelo='./meu_modelo')
     dv.vetorizar_dados(docs)
-    arq_saida = './vetorizados/parag_legislacoes.json'
     os.makedirs(os.path.split(arq_saida)[0], exist_ok=True)
     with open(arq_saida,'w') as f:
          for d in docs:
@@ -68,11 +72,6 @@ if __name__ == '__main__':
     # agrupar_pasta()
 
     # exemplos 2 - agrupar textos de um dataframe
+    criar_vetorizados() # cria o arquivo com textos vetorizados 
     agrupar_arquivo_com_vetores()
 
-    # exemplo 3 - criar um arquivo com textos vetorizados 
-    # feito para gerar dados para o exemplo 2
-    # criar_vetorizados()
-
-
-#1951 segundos para 
