@@ -183,7 +183,7 @@ class UtilPandasExcel:
         return UtilPandasExcel.RE_FORMULA.sub('', UtilPandasExcel.RE_URL.sub('((url))',value))
 
     def save(self):
-        self.writer.save()
+        self.writer.close()
 
 
 if __name__ == '__main__':
