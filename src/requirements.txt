@@ -7,6 +7,7 @@ sentencepiece==0.1.97
 
 pandas
 xlsxwriter
+seaborn
 tdqm
 
 regex
