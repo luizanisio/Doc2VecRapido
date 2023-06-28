@@ -295,7 +295,8 @@ class AgrupamentoRapido():
             self.printlog(f'Reduzindo dimensões para plotagem de {len(self.dados["vetor"][0])}d para 2d')
             warnings.filterwarnings("ignore") 
             tsne_model = TSNE(n_components=2, init='pca', method='exact', n_iter=1000)
-            vetores_2d = tsne_model.fit_transform(list(self.dados['vetor_np']) )
+            lista = [_ for _ in self.dados['vetor_np'] if len(_)>0]
+            vetores_2d = tsne_model.fit_transform(np.array(lista) )
             warnings.filterwarnings("default") 
             x,y = zip(*vetores_2d)
          else:
