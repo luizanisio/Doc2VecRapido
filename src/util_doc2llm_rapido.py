@@ -221,9 +221,9 @@ class Doc2LLMRapido():
         '''
         return self.similaridade_vetores(*par_vetores)  
 
-    def vetor(self, texto, retornar_float = False, normalizar = True, batch_size=8, estrategia_longos = LONGOS_MEDIA):
-        return self.vetores(textos = [texto], retornar_float = retornar_float, normalizar = normalizar, batch_size=batch_size, estrategia_longos = estrategia_longos)[0]
-
+    def vetor(self, texto, retornar_float = False, normalizar = True, batch_size=8, estrategia_longos = LONGOS_MEDIA, progresso=False):
+        return self.vetores(textos = [texto], retornar_float = retornar_float, normalizar = normalizar, batch_size=batch_size, estrategia_longos = estrategia_longos, progresso=progresso)[0]
+    
     def e_texto_longo(self, texto):
         return len(texto) > self.__parametros_chunks__['nao_longo']
     
