@@ -38,12 +38,15 @@ class UtilDocs():
     def map_thread(cls, func, lista, n_threads=N_THREADS_PADRAO, tdqm_progress = True):
         # print('Iniciando {} threads'.format(n_threads))
         _qtd = [len(lista)]
+        progresso = Progresso(_qtd[0]) if tdqm_progress else None
         def __func_progress__(v):
             _qtd[0] -= 1
+            progresso.restantes(_qtd[0])
             func(v)
         pool = ThreadPool(n_threads)
         if tdqm_progress:
            pool.map(__func_progress__, lista)
+           progresso.close()
         else:
            pool.map(func, lista)
         pool.close()
