@@ -201,7 +201,7 @@ class UtilDocs():
         chunks = []
         start = 0
         end = tamanho
-        sobreposicao = sobreposicao if sobreposicao < tamanho else sobreposicao-1
+        sobreposicao = sobreposicao if sobreposicao < tamanho else tamanho-1
         if len(texto) <= tamanho + tolerancia:
             return []
 
